@@ -28,11 +28,11 @@ class create_inh_population():
         self.time_window = 50.		#50= 5ms (0.1ms*50 = 5ms), this is based on the delta_clock
         self.count = 0
         
-        #Create populations for bsg	
-        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.bsg_neuronparams)		
+        #Create populations for rg	
+        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.irregular_neuronparams)		
         
         #Create noise
-        self.white_noise = nest.Create("noise_generator",netparams.noise_params_tonic)
+        self.white_noise = nest.Create("noise_generator",netparams.noise_params)
         
         #Create spike detectors (for recording spikes)
         self.spike_detector_inh = nest.Create("spike_recorder",netparams.inh_pop_neurons)
@@ -42,9 +42,6 @@ class create_inh_population():
 	
         #Connect white noise to neurons
         nest.Connect(self.white_noise,self.inh_pop,"all_to_all")
-	
-        #Connect neurons within inh population
-        #self.coupling_inh_inh = nest.Connect(self.inh_pop,self.inh_pop,netparams.conn_dict_custom,netparams.inh_syn_params)
 
         #Connect spike detectors to neuron populations
         nest.Connect(self.inh_pop,self.spike_detector_inh,"one_to_one")
@@ -141,8 +138,8 @@ class create_inh_population():
             smoothed_spikes = (smoothed_spikes.T - np.mean(smoothed_spikes, axis=1)).T
         if netparams.high_pass_filtered:            
             from scipy.signal import butter, sosfilt, filtfilt, sosfiltfilt
-            # Same used as in Henrik's BSG paper
-            b, a = butter(3, 0.3, 'highpass', fs=1000)
+            # Same used as in Linden et al, 2022 paper
+            b, a = butter(3, .1, 'highpass', fs=1000)   #high pass freq was previously 0.3Hz
             smoothed_spikes = filtfilt(b, a, smoothed_spikes)
             smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*smoothed_spikes.shape[-1]) : int(smoothed_spikes.shape[-1] - netparams.chop_edges_amount*smoothed_spikes.shape[-1])]
         if netparams.downsampling_convolved:

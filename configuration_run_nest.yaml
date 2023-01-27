@@ -1,19 +1,18 @@
 PCA_components: 5
 chop_edges_amount: 0
 convstd: 200
-coupling: .6
+coupling: 0.6
 coupling_std: .12
 delta_clock: 0.1 #Simulation time step (ms)
 downsampling_convolved: 0
-exc_pct_burst: 0.1
+exc_pct_tonic: 0.45 
 freezing_enabled: 0
 high_pass_filtered: true
-inh_pct_burst: 0.1
+inh_pct_tonic: 0.45 
 nerve_readout: 0
-bsg_pop_size: 2000
+rg_pop_size: 2000
 inh_pop_size: 100
-noise_amplitude_tonic: 160. #Current mean 160 
-noise_amplitude_bursting: 300. #Current mean 300
+noise_amplitude: 160. #Current mean 160 
 plot_convolved_spikes: 0
 plot_subthreshold: 1
 plots: 1
@@ -26,8 +25,8 @@ remove_silent: true
 run_PCA: 1
 save_results: 1
 seed: 8643539 #Control seed: 8643539; Slow initialization seed: 7895308
-sparsity: 0.03 
-sparsity_inh: 0.09 
+sparsity_rg: 0.03 
+sparsity_cpg: 0.09 
 stimulation_step: 1
 synaptic_delay: 2.
 sync_regularity: 0

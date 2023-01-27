@@ -28,13 +28,13 @@ class connect():
     def create_connections(self,pop1,pop2,syn_type):
         #Connect populations
         if syn_type=='exc':
-            self.coupling_populations_exc = nest.Connect(pop1,pop2,netparams.conn_dict_custom,netparams.exc_syn_params) 
+            self.coupling_populations_exc = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,netparams.exc_syn_params) 
             #print('Excitatory connections created')
         if syn_type=='inh':
-            self.coupling_populations_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom,netparams.inh_syn_params)
+            self.coupling_populations_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
             #print('Inhibitory connections created')
         if syn_type=='inh_strong':
-            self.coupling_populations_strong_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_inh,netparams.strong_inh_syn_params)
+            self.coupling_populations_strong_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_cpg,netparams.strong_inh_syn_params)
             #print('Strong inhibitory connections created')
     
     def calculate_balance(self,pop1,pop2,synapse_type):

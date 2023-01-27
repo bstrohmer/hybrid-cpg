@@ -23,8 +23,8 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
     if remove_mean:
         population_mean_activity = (population_mean_activity - np.mean(population_mean_activity, axis=0))
     if high_pass_filtered:            
-        b, a = butter(3, 0.3, 'highpass', fs=1000)
-        population_mean_activity = filtfilt(b, a, population_mean_activity)
+        b, a = butter(3, .1, 'highpass', fs=1000)		#high pass freq was previously 0.3Hz
+        population_mean_activity = filtfilt(b, a, population_mean_activity)		#high pass filter the mean activity
 
     freqs_pop, psd_pop = signal.welch(population_mean_activity)
     peak_population_mean_activitypsd_freq = freqs_pop[np.where(psd_pop == psd_pop.max())[0][0]]
