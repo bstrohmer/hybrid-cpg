@@ -16,6 +16,7 @@ from connect_populations import connect
 import pickle, yaml
 import pandas as pd
 from phase_ordering import order_by_phase
+from pca import run_PCA
 from scipy.signal import find_peaks
 
 conn=connect() 
@@ -45,6 +46,7 @@ conn.create_connections(inh2.inh_pop,rg1.rg_exc_irregular,'inh_strong')
 conn.create_connections(inh2.inh_pop,rg1.rg_exc_tonic,'inh_strong')
 conn.create_connections(inh2.inh_pop,rg1.rg_inh_irregular,'inh_strong')
 conn.create_connections(inh2.inh_pop,rg1.rg_inh_tonic,'inh_strong')
+
 '''
 #Test by connecting RG populations directly using excitation and inhibition
 conn.create_connections(rg1.rg_exc_irregular,rg2.rg_inh_irregular,'exc')
@@ -119,7 +121,6 @@ conn.calculate_balance(inh2.inh_pop,rg1.rg_exc_tonic,'inh_strong')
 conn.calculate_balance(inh2.inh_pop,rg1.rg_inh_irregular,'inh_strong')
 rg_balance_pct = conn.calculate_balance(inh2.inh_pop,rg1.rg_inh_tonic,'inh_strong')
 
-
 #print('RG2 balance %: ',rg2_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
 print('CPG balance %: ',rg_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
 
@@ -189,7 +190,7 @@ spikes_convolved_all2 = np.vstack([rg_exc_convolved2,rg_inh_convolved2])
 spikes_convolved_all2 = np.vstack([spikes_convolved_all2,rg_exc_tonic_convolved2])
 spikes_convolved_all2 = np.vstack([spikes_convolved_all2,rg_inh_tonic_convolved2])
 
-#Convolve spike data - rg populations
+#Convolve spike data - inh populations
 inh1_convolved = inh1.convolve_spiking_activity(nn.inh_pop_neurons,spiketimes_inhpop1)
 inh2_convolved = inh2.convolve_spiking_activity(nn.inh_pop_neurons,spiketimes_inhpop2)
 
@@ -204,6 +205,13 @@ if nn.remove_silent:
     spikes_convolved_complete_network = spikes_convolved_complete_network[~np.all(spikes_convolved_complete_network == 0, axis=1)]
 
 print('Convolved spiking activity complete')
+
+#Run PCA - rg populations
+run_PCA(spikes_convolved_all1,'rg1')
+run_PCA(spikes_convolved_all2,'rg2')
+run_PCA(spikes_convolved_complete_network,'all_pops')
+
+print('PCA complete')
 
 #Create Rate Coded Output - rg populations
 spike_bins_rg_exc1 = rg1.rate_code_spikes(nn.exc_irregular_count,spiketimes_exc1)

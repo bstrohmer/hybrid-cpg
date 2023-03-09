@@ -29,10 +29,11 @@ class create_inh_population():
         self.count = 0
         
         #Create populations for rg	
+        #self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.tonic_neuronparams)
         self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.irregular_neuronparams)		
         
         #Create noise
-        self.white_noise = nest.Create("noise_generator",netparams.noise_params)
+        self.white_noise = nest.Create("noise_generator",netparams.noise_params_irregular)
         
         #Create spike detectors (for recording spikes)
         self.spike_detector_inh = nest.Create("spike_recorder",netparams.inh_pop_neurons)

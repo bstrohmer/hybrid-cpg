@@ -24,7 +24,7 @@ class neural_network():
         self.args = args
 
         #Set parameters for network
-        self.rng_seed = np.random.randint(10**7) if args['seed'] is None else args['seed'] 	
+        self.rng_seed = np.random.randint(10**7) if args['seed'] is None else args['seed'] 	#RUN WITH RANDOM SEED	
         self.time_resolution = args['delta_clock'] 		#equivalent to "delta_clock"
         self.inh_pop_neurons = args['inh_pop_size']
         self.rg_pop_neurons = args['rg_pop_size']
@@ -44,11 +44,12 @@ class neural_network():
         self.t_ref_initial = nest.random.normal(mean=1.0, std=0.2) #ms
         self.w_exc_initial = nest.random.normal(mean=args['coupling']/args['ratio_exc_inh'], std=args['coupling_std'])+(2*args['coupling']) #nS, divide mean weight by exc/inh ratio to keep network balance (control is 2x)
         #self.w_exc_initial = nest.random.normal(mean=args['coupling'], std=args['coupling_std'])
-        self.w_inh_initial = -1*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS 
-        self.w_strong_inh_initial = -2*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS 
+        self.w_inh_initial = -1*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS        
+        self.w_strong_inh_initial = -2*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS
         self.I_e_irregular = nest.random.normal(mean=160.0, std=40.0) #pA Control = 160/40
-        self.I_e_tonic = nest.random.normal(mean=160.0, std=40.0) #pA Control = 160/40		
-        self.noise_std_dev = args['noise_amplitude']	#pA
+        self.I_e_tonic = nest.random.normal(mean=320.0, std=80.0) #pA Control = 320/80		
+        self.noise_std_dev_tonic = args['noise_amplitude_tonic'] #pA
+        self.noise_std_dev_irregular = args['noise_amplitude_irregular'] #pA
         self.freezing_enabled = args['freezing_enabled']
 
         #Set data evaluation parameters
@@ -58,6 +59,7 @@ class neural_network():
         self.high_pass_filtered = args['high_pass_filtered']
         self.downsampling_convolved = args['downsampling_convolved']
         self.remove_silent = args['remove_silent']
+        self.PCA_components = args['PCA_components']
 
         #Set neuron parameters
         self.irregular_neuronparams = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':self.I_e_irregular,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
@@ -84,7 +86,8 @@ class neural_network():
         self.mm_params = {'interval': 1., 'record_from': ['V_m', 'g_ex', 'g_in']}
 
         #Set noise parameters
-        self.noise_params = {"dt": self.time_resolution, "std":self.noise_std_dev}
+        self.noise_params_tonic = {"dt": self.time_resolution, "std":self.noise_std_dev_tonic}
+        self.noise_params_irregular = {"dt": self.time_resolution, "std":self.noise_std_dev_irregular}
         
     ################
     # Save results #

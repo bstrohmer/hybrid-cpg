@@ -69,14 +69,14 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         if netparams.args['save_results']: pyplot.savefig(netparams.pathFigures + '/' + 'phase_sorted'+ pop_name +'.png',bbox_inches="tight")
         
         pyplot.figure()
-        count, bins, ignored = pyplot.hist(phase_i,density=True)
+        count, bins, ignored = pyplot.hist(phase_i,bins=25,density=True)
         average_bin_height = (sum(count)/len(count)) 
         diff_bin_height = [abs(x - average_bin_height) for x in count]
         average_diff_bin_height = (sum(diff_bin_height)/len(diff_bin_height))
         print('The avg probability density is: ',average_bin_height)
         print('The avg difference is: ',average_diff_bin_height)
         pyplot.axhline(y=sum(count)/len(count), linewidth=2, color='r')
-        pyplot.xlabel('Phase')
+        pyplot.xlabel('Phase (rad)')
         pyplot.ylabel('Probability density')
         pyplot.title('Phase distribution')
         if netparams.args['save_results']: pyplot.savefig(netparams.pathFigures + '/' + 'phase_distribution'+ pop_name +'.png',bbox_inches="tight")

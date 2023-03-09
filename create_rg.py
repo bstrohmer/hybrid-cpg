@@ -7,14 +7,13 @@ import numpy as np
 import sys
 import pylab
 import math
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pyplot
 import pickle, yaml
 import random
 import scipy
 import scipy.fftpack
 from scipy.signal import find_peaks, peak_widths, peak_prominences
 import time
-import numpy as np
 import copy
 from set_network_params import neural_network
 netparams = neural_network()
@@ -30,12 +29,13 @@ class create_rg_population():
         
         #Create populations for rg
         self.rg_exc_irregular = nest.Create("aeif_cond_alpha",netparams.exc_irregular_count,netparams.irregular_neuronparams)		
-        self.rg_inh_irregular = nest.Create("aeif_cond_alpha",netparams.inh_irregular_count,netparams.irregular_neuronparams)		
+        self.rg_inh_irregular = nest.Create("aeif_cond_alpha",netparams.inh_irregular_count,netparams.irregular_neuronparams)	
         if netparams.exc_tonic_count != 0: self.rg_exc_tonic = nest.Create("aeif_cond_alpha",netparams.exc_tonic_count,netparams.tonic_neuronparams) 	
         if netparams.inh_tonic_count != 0: self.rg_inh_tonic = nest.Create("aeif_cond_alpha",netparams.inh_tonic_count,netparams.tonic_neuronparams) 
         
         #Create noise
-        self.white_noise = nest.Create("noise_generator",netparams.noise_params)     
+        self.white_noise_tonic = nest.Create("noise_generator",netparams.noise_params_tonic) 
+        self.white_noise_irregular = nest.Create("noise_generator",netparams.noise_params_irregular)     
         
         #Create spike detectors (for recording spikes)
         self.spike_detector_rg_exc_irregular = nest.Create("spike_recorder",netparams.exc_irregular_count)
@@ -52,10 +52,10 @@ class create_rg_population():
         self.mm_rg_inh_tonic = nest.Create("multimeter",netparams.mm_params)
 	
         #Connect white noise to neurons
-        nest.Connect(self.white_noise,self.rg_exc_irregular,"all_to_all")
-        nest.Connect(self.white_noise,self.rg_inh_irregular,"all_to_all")
-        if netparams.exc_tonic_count != 0: nest.Connect(self.white_noise,self.rg_exc_tonic,"all_to_all") 
-        if netparams.inh_tonic_count != 0: nest.Connect(self.white_noise,self.rg_inh_tonic,"all_to_all") 
+        nest.Connect(self.white_noise_irregular,self.rg_exc_irregular,"all_to_all")
+        nest.Connect(self.white_noise_irregular,self.rg_inh_irregular,"all_to_all")
+        if netparams.exc_tonic_count != 0: nest.Connect(self.white_noise_tonic,self.rg_exc_tonic,"all_to_all") 
+        if netparams.inh_tonic_count != 0: nest.Connect(self.white_noise_tonic,self.rg_inh_tonic,"all_to_all") 
 	
         #Connect neurons within rg
         self.coupling_exc_inh = nest.Connect(self.rg_exc_irregular,self.rg_inh_irregular,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
@@ -209,5 +209,7 @@ class create_rg_population():
             nest.SetStatus([neuron],{"I_e": current})
         updated_current = nest.GetStatus(neuron_population, keys="I_e")[0]
         return updated_current
+   
+
         
 rg = create_rg_population()       	        
