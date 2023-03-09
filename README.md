@@ -14,5 +14,6 @@ connect_populations.py - connects specified populations in order to create diffe
 create_rg.py - creates a single rhythm-generating population<br>
 create_inh_pop.py - creates a single inhibitory population<br>
 phase_ordering.py - compares single neuron activity to mean population activity and orders the output by phase<br>
+pca.py - runs a PCA on the convolved spiking activity from the individual RGs and the overall network output<br>
 set_network_params.py - sets the general network parameters, some of these parameters are taken from the yaml file, others must be set from within this script<br>
 start_simulation.py - starts the NEST simulation
