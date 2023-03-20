@@ -26,3 +26,5 @@ P3 - Neuronal sub-type (bursting) - update the value for "exc_pct_tonic" and "in
 P4 - Network balance - update the weight initialization for the synapses, this can be altered using the parameters "w_exc_initial" or "w_inh_initial" in the set_network_params.py file<br>
 P5 - Noise (to tonic firing neurons) - update the value for "noise_amplitude_tonic" in the yaml file. Ex. 320 means that the current noise injected into each neuron has a standard deviation of 320pA<br>
 P5 - Noise (to bursting neurons) - update the value for "noise_amplitude_irregular" in the yaml file. Ex. 160 means that the current noise injected into each neuron has a standard deviation of 160pA<br>
+
+All other network parameters can be updated in the set_network_params.py file if the network needs to be tuned to a specific application.
