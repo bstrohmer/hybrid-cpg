@@ -1,7 +1,7 @@
 # hybrid-cpg
 NEST simulation of a sparse firing CPG
 
-To run this simulation, all of the files must be in the same folder and NEST version 3.3 must be installed. Run the simulation using the command:
+To run this simulation, all of the files must be in the same folder and NEST version 3.4 must be installed. Run the simulation using the command:
 
 python3 create_cpg.py
 
