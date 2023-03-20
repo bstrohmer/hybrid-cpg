@@ -18,7 +18,7 @@ pca.py - runs a PCA on the convolved spiking activity from the individual RGs an
 set_network_params.py - sets the general network parameters, some of these parameters are taken from the yaml file, others must be set from within this script<br>
 start_simulation.py - starts the NEST simulation<br>
 
-Testing the parameters from the paper:
+Testing the parameters from the paper:<br>
 P1 - Ratio of excitatory / inhibitory neurons in the RG - update the value for "ratio_exc_inh" in the yaml file. Ex. 5 means 5:1 ratio or 20% inhibitory<br>
 P2 - Connectivity (RG) - update the value for "sparsity_rg" in the yaml file. Ex. 0.03 means 3% connectivity within and from each RG population<br>
 P2 - Connectivity (Inh) - update the value for "sparsity_cpg" in the yaml file. Ex. 0.09 means 9% connectivity from each Inhibitory population<br>
