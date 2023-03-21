@@ -5,10 +5,10 @@ coupling: .6 #Original 0.6
 coupling_std: .12 #Original .12
 delta_clock: 0.1 #Simulation time step (ms)
 downsampling_convolved: 0
-exc_pct_tonic: 0.28 #Control 0.7
+exc_pct_tonic: 0.7 #Control 0.7
 freezing_enabled: 0
 high_pass_filtered: true
-inh_pct_tonic: 0.28 #Control 0.7
+inh_pct_tonic: 0.7 #Control 0.7
 nerve_readout: 0
 rg_pop_size: 2000
 inh_pop_size: 100
@@ -25,7 +25,7 @@ remove_mean: true
 remove_silent: true
 run_PCA: 1
 save_results: 1
-seed: 2261520 #Control seed: 8643539; 
+seed: 2261520 #Control seed: 2261520; 
 sparsity_rg: 0.03 #Original 0.03
 sparsity_cpg: 0.09 #Original 0.09
 stimulation_step: 1
