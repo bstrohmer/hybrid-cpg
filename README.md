@@ -5,8 +5,15 @@ To run this simulation, all of the files must be in the same folder and NEST ver
 
 python3 create_cpg.py
 
-File overview:<br>
-configuration_run_nest.yaml - file to quickly access and change network characteristics for testing<br>
+<b>File overview:</b><br>
+configuration_run_nest.yaml - file to quickly access and change network characteristics for testing, the inidividual analyses can also be selected from this file by turning on the relevant plot(s)<br>
+membrane_potential_plot: This will produce a membrane potential plot of a tonic and burstig neuron from each of the RG populations.<br>
+pca_plot: This creates both 2D and 3D PCA plots with accompanying analysis data printed to the screen.<br>
+phase_ordered_plot: These are the firing rate plots shown as panels of the corresponding unsorted and sorted plots.<br>
+raster_plot: These plots show the spikes produced per neuron as individual points.<br>
+rate_coded_plot: This plot using a sliding time window and smoothing to produce an analog output from each of the RGs.<br>
+spike_distribution_plot: This is a line graph to show how many neurons spike 'x' amount of times, for example, the number of neurons spiking 2 times.<br>
+
 loop_script.sh - bash script to loop the python script to run specified number of simulations in a row using the same parameters<br>
 
 create_cpg.py - the main python script which calls the other scripts to build a CPG<br>
@@ -18,7 +25,7 @@ pca.py - runs a PCA on the convolved spiking activity from the individual RGs an
 set_network_params.py - sets the general network parameters, some of these parameters are taken from the yaml file, others must be set from within this script<br>
 start_simulation.py - starts the NEST simulation<br>
 
-Testing the parameters from the paper:<br>
+<b>Testing the parameters from the paper:</b><br>
 P1 - Ratio of excitatory / inhibitory neurons in the RG - update the value for "ratio_exc_inh" in the yaml file. Ex. 5 means 5:1 ratio or 20% inhibitory<br>
 P2 - Connectivity (RG) - update the value for "sparsity_rg" in the yaml file. Ex. 0.03 means 3% connectivity within and from each RG population<br>
 P2 - Connectivity (Inh) - update the value for "sparsity_cpg" in the yaml file. Ex. 0.09 means 9% connectivity from each Inhibitory population<br>
