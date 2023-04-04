@@ -51,6 +51,7 @@ class neural_network():
         self.noise_std_dev_tonic = args['noise_amplitude_tonic'] #pA
         self.noise_std_dev_irregular = args['noise_amplitude_irregular'] #pA
         self.freezing_enabled = args['freezing_enabled']
+        self.rgs_connected = args['rgs_connected']
 
         #Set data evaluation parameters
         self.convstd = args['convstd']
@@ -60,6 +61,14 @@ class neural_network():
         self.downsampling_convolved = args['downsampling_convolved']
         self.remove_silent = args['remove_silent']
         self.PCA_components = args['PCA_components']
+        self.calculate_balance = args['calculate_balance']
+        self.raster_plot = args['raster_plot']
+        self.rate_coded_plot = args['rate_coded_plot']
+        self.spike_distribution_plot = args['spike_distribution_plot']
+        self.pca_plot = args['pca_plot']
+        self.phase_ordered_plot = args['phase_ordered_plot']
+        self.membrane_potential_plot = args['membrane_potential_plot']
+
 
         #Set neuron parameters
         self.irregular_neuronparams = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':self.I_e_irregular,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS

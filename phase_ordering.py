@@ -20,6 +20,8 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         sorted_convolved_activity (np.array): sorted continuos firing activity resulting from convolving spikes (nb_neurons x simulation_time)
         sorted_idx (list): index describing the phase ordering, it's return in case it's need to order something else like the raster plot.
     """
+    #print('Lengths conv,ratecoded',np.shape(convolved_activity)[1],len(population_mean_activity))
+
     if remove_mean:
         population_mean_activity = (population_mean_activity - np.mean(population_mean_activity, axis=0))
     if high_pass_filtered:            
@@ -28,12 +30,11 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
 
     freqs_pop, psd_pop = signal.welch(population_mean_activity)
     peak_population_mean_activitypsd_freq = freqs_pop[np.where(psd_pop == psd_pop.max())[0][0]]
-        
+       
 
     phase_i = []
     psd_indiv = []
     for convolved_activity_neuron_i in convolved_activity:
-        
         # Cross spectral density or cross power spectrum of x,y.
         f, Pxy = signal.csd(convolved_activity_neuron_i,population_mean_activity)
         
@@ -73,8 +74,8 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         average_bin_height = (sum(count)/len(count)) 
         diff_bin_height = [abs(x - average_bin_height) for x in count]
         average_diff_bin_height = (sum(diff_bin_height)/len(diff_bin_height))
-        print('The avg probability density is: ',average_bin_height)
-        print('The avg difference is: ',average_diff_bin_height)
+        #print('The avg probability density is: ',average_bin_height)
+        #print('The avg difference is: ',average_diff_bin_height)
         pyplot.axhline(y=sum(count)/len(count), linewidth=2, color='r')
         pyplot.xlabel('Phase (rad)')
         pyplot.ylabel('Probability density')

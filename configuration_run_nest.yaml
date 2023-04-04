@@ -1,34 +1,34 @@
 PCA_components: 5
+calculate_balance: 0
 chop_edges_amount: 0
 convstd: 200
 coupling: .6 #Original 0.6
 coupling_std: .12 #Original .12
-delta_clock: 0.1 #Simulation time step (ms)
+delta_clock: .1 #Simulation time step (ms)
 downsampling_convolved: 0
 exc_pct_tonic: 0.7 #Control 0.7
 freezing_enabled: 0
 high_pass_filtered: true
 inh_pct_tonic: 0.7 #Control 0.7
-nerve_readout: 0
 rg_pop_size: 2000
 inh_pop_size: 100
 noise_amplitude_tonic: 320. #Current mean 320 
 noise_amplitude_irregular: 160. #Current mean 160
-plot_convolved_spikes: 0
-plot_subthreshold: 1
-plots: 1
-random_connectivity: 1
-random_stimulation_current: 0
-random_vm_init: 1
 ratio_exc_inh: 5
 remove_mean: true
 remove_silent: true
+rgs_connected: 1
 run_PCA: 1
 save_results: 1
 seed: 2261520 #Control seed: 2261520; 
 sparsity_rg: 0.03 #Original 0.03
 sparsity_cpg: 0.09 #Original 0.09
-stimulation_step: 1
 synaptic_delay: 2.
 sync_regularity: 0
 t_steps: 3000
+membrane_potential_plot: 0 #This parameter and below allow selection of specific plots
+pca_plot: 1
+phase_ordered_plot: 1
+raster_plot: 0
+rate_coded_plot: 1
+spike_distribution_plot: 1

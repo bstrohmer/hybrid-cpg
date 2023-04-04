@@ -25,7 +25,7 @@ class create_inh_population():
         self.spiketimes = []
         self.saved_spiketimes = []
         self.saved_senders = []
-        self.time_window = 50.		#50= 5ms (0.1ms*50 = 5ms), this is based on the delta_clock
+        self.time_window = 50		#50*0.1=5ms time window, based on time resolution of 0.1
         self.count = 0
         
         #Create populations for rg	
@@ -65,13 +65,12 @@ class create_inh_population():
         self.senders += [self.spike_detector.get('events', 'senders')]
         self.spiketimes += [self.spike_detector.get('events', 'times')]
         return self.senders,self.spiketimes
-    
+
     def count_indiv_spikes(self,total_neurons,neuron_id_data):
-        self.spike_count_array = []
-        for i in range(total_neurons):
-            self.neuron_id = neuron_id_data[0][i]
-            self.spike_count_array.append(len(self.neuron_id))
-        return self.spike_count_array
+        self.spike_count_array = [len(neuron_id_data[0][i]) for i in range(total_neurons)]
+        self.less_than_10_indices = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<10]
+        self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 0 else 1
+        return self.spike_count_array,self.neuron_to_sample      
         
     def save_spike_data(self,num_neurons,population,neuron_num_offset):
         spike_time = []
@@ -101,21 +100,29 @@ class create_inh_population():
             spike_time_index = int(spike_data[j]*10)-1
             spike_time[spike_time_index]=1        
         return spike_time
-            
-    def rate_code_spikes(self,neuron_count,output_spiketimes):
+
+    def rate_code_spikes(self, neuron_count, output_spiketimes):
+        # Initialize the spike bins array as a 2D array
+        bins=np.arange(0, netparams.sim_time+netparams.time_resolution,netparams.time_resolution)
+        # Loop over each neuron
         for i in range(neuron_count):
-            spike_total_current = []
             t_spikes = output_spiketimes[0][i]
-            step = self.time_window
-            for n in range(int(netparams.sim_time/netparams.time_resolution)):
-                spike_total_current.append(len(list(x for x in t_spikes if step-self.time_window <= x <= step)))
-                step = step + netparams.time_resolution
+            # Use numpy's histogram function to assign each spike to its corresponding time bin index
+            spikes_per_bin,bin_edges=np.histogram(t_spikes, bins)
+            # Add the spike counts to the `spike_bins_current` array
             if i == 0:
-                spike_bins_current = spike_total_current
+                spike_bins_current = spikes_per_bin
             else:
-                spike_bins_current = np.add(spike_bins_current,spike_total_current)
-        return spike_bins_current
+                spike_bins_current += spikes_per_bin
+        spike_bins_current = self.sliding_time_window(spike_bins_current,self.time_window)
+        from scipy.ndimage import gaussian_filter
+        smoothed_spike_bins = gaussian_filter(spike_bins_current, netparams.convstd)
+        return smoothed_spike_bins
         
+    def sliding_time_window(self,signal, window_size):
+        windows = np.lib.stride_tricks.sliding_window_view(signal, window_size)
+        return np.sum(windows, axis=1)    
+   
     def smooth(self, data, sd):
         data = copy.copy(data)       
         from scipy.signal import gaussian
@@ -129,9 +136,7 @@ class create_inh_population():
     
     def convolve_spiking_activity(self,population_size,population):
         time_steps = int(netparams.sim_time/netparams.time_resolution)
-        self.binary_spikes = self.single_neuron_spikes_binary(0,population)
-        for i in range(population_size-1):
-            self.binary_spikes = np.vstack([self.binary_spikes,self.single_neuron_spikes_binary(i+1,population)])
+        self.binary_spikes = np.vstack([self.single_neuron_spikes_binary(i, population) for i in range(population_size)])
         smoothed_spikes = self.smooth(self.binary_spikes, netparams.convstd)
         if netparams.chop_edges_amount > 0.0:
             smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*self.binary_spikes.shape[-1]) : int(self.binary_spikes.shape[-1] - netparams.chop_edges_amount*self.binary_spikes.shape[-1])] # chop edges to remove artifiacts induce by convoing over the gaussian
@@ -146,6 +151,7 @@ class create_inh_population():
         if netparams.downsampling_convolved:
             from scipy.signal import decimate
             smoothed_spikes = decimate(smoothed_spikes, int(1/netparams.time_resolution), n=2, ftype='iir', zero_phase=True)
+        smoothed_spikes = smoothed_spikes[:, :-self.time_window+1]
         return smoothed_spikes
         
 inh = create_inh_population()       	        
