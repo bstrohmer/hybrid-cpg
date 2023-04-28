@@ -17,7 +17,7 @@ spike_distribution_plot: This is a line graph to show how many neurons spike 'x'
 loop_script.sh - bash script to loop the python script to run specified number of simulations in a row using the same parameters<br>
 
 create_cpg.py - the main python script which calls the other scripts to build a CPG<br>
-connect_populations.py - connects specified populations in order to create different architectures<br>
+connect_populations.py - connects specified populations in order to create different architectures, contains balance calculation functions<br>
 create_rg.py - creates a single rhythm-generating population<br>
 create_inh_pop.py - creates a single inhibitory population<br>
 phase_ordering.py - compares single neuron activity to mean population activity and orders the output by phase<br>
@@ -30,7 +30,7 @@ P1 - Ratio of excitatory / inhibitory neurons in the RG - update the value for "
 P2 - Connectivity (RG) - update the value for "sparsity_rg" in the yaml file. Ex. 0.03 means 3% connectivity within and from each RG population<br>
 P2 - Connectivity (Inh) - update the value for "sparsity_cpg" in the yaml file. Ex. 0.09 means 9% connectivity from each Inhibitory population<br>
 P3 - Neuronal sub-type (bursting) - update the value for "exc_pct_tonic" and "inh_pct_tonic" in the yaml file. Ex. 0.7 means 70% of the neurons within a sub-population are tonically firing and 30% are bursting<br>
-P4 - Network balance - update the weight initialization for the synapses, this can be altered using the parameters "w_exc_initial" or "w_inh_initial" in the set_network_params.py file<br>
+P4 - Network balance - update the value for "w_exc_multiplier" in the yaml file. Decreasing the default value will bias the balance more inhibitory and increasing will bias it to be more excitatory.<br>
 P5 - Noise (to tonic firing neurons) - update the value for "noise_amplitude_tonic" in the yaml file. Ex. 320 means that the current noise injected into each neuron has a standard deviation of 320pA<br>
 P5 - Noise (to bursting neurons) - update the value for "noise_amplitude_irregular" in the yaml file. Ex. 160 means that the current noise injected into each neuron has a standard deviation of 160pA<br>
 
