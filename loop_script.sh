@@ -2,7 +2,7 @@
 # Basic while loop
 
 counter=1
-while [ $counter -le 10 ]
+while [ $counter -le 20 ]
 do
     python3 create_cpg.py
     echo $counter

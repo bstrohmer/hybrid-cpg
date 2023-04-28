@@ -20,8 +20,8 @@ from pca import run_PCA
 from scipy.signal import find_peaks
 from scipy.fft import fft, fftfreq
 
-conn=connect() 
 ss.nest_start()
+conn=connect() 
 nn=netparams.neural_network()
 
 #Create neuron populations - NEST
@@ -51,57 +51,6 @@ if nn.rgs_connected==1:
 
 print("Seed#: ",nn.rng_seed)
 print("# exc (bursting, tonic): ",nn.exc_irregular_count,nn.exc_tonic_count,"; # inh(bursting, tonic): ",nn.inh_irregular_count,nn.inh_tonic_count,"; # inh buffer: ",nn.inh_pop_neurons)
-if nn.calculate_balance==1:
-	#Calculate synaptic balance of rg populations
-	conn.calculate_balance(rg1.rg_exc_irregular,rg1.rg_exc_irregular,'exc')
-	conn.calculate_balance(rg1.rg_exc_irregular,rg1.rg_exc_tonic,'exc')
-	conn.calculate_balance(rg1.rg_exc_irregular,rg1.rg_inh_irregular,'exc')
-	conn.calculate_balance(rg1.rg_exc_irregular,rg1.rg_inh_tonic,'exc')
-	conn.calculate_balance(rg1.rg_inh_irregular,rg1.rg_inh_irregular,'inh')
-	conn.calculate_balance(rg1.rg_inh_irregular,rg1.rg_inh_tonic,'inh')
-	conn.calculate_balance(rg1.rg_inh_irregular,rg1.rg_exc_irregular,'inh')
-	conn.calculate_balance(rg1.rg_inh_irregular,rg1.rg_exc_tonic,'inh')
-	conn.calculate_balance(rg1.rg_exc_tonic,rg1.rg_exc_irregular,'exc')
-	conn.calculate_balance(rg1.rg_exc_tonic,rg1.rg_exc_tonic,'exc')
-	conn.calculate_balance(rg1.rg_exc_tonic,rg1.rg_inh_irregular,'exc')
-	conn.calculate_balance(rg1.rg_exc_tonic,rg1.rg_inh_tonic,'exc')
-	conn.calculate_balance(rg1.rg_inh_tonic,rg1.rg_inh_irregular,'inh')
-	conn.calculate_balance(rg1.rg_inh_tonic,rg1.rg_inh_tonic,'inh')
-	conn.calculate_balance(rg1.rg_inh_tonic,rg1.rg_exc_irregular,'inh')
-	rg1_balance_pct = conn.calculate_balance(rg1.rg_inh_tonic,rg1.rg_exc_tonic,'inh')
-
-	#print('RG1 balance %: ',rg1_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
-	#conn.reset_balance()
-
-	conn.calculate_balance(rg2.rg_exc_irregular,rg2.rg_exc_irregular,'exc')
-	conn.calculate_balance(rg2.rg_exc_irregular,rg2.rg_exc_tonic,'exc')
-	conn.calculate_balance(rg2.rg_exc_irregular,rg2.rg_inh_irregular,'exc')
-	conn.calculate_balance(rg2.rg_exc_irregular,rg2.rg_inh_tonic,'exc')
-	conn.calculate_balance(rg2.rg_inh_irregular,rg2.rg_inh_irregular,'inh')
-	conn.calculate_balance(rg2.rg_inh_irregular,rg2.rg_inh_tonic,'inh')
-	conn.calculate_balance(rg2.rg_inh_irregular,rg2.rg_exc_irregular,'inh')
-	conn.calculate_balance(rg2.rg_inh_irregular,rg2.rg_exc_tonic,'inh')
-	conn.calculate_balance(rg2.rg_exc_tonic,rg2.rg_exc_irregular,'exc')
-	conn.calculate_balance(rg2.rg_exc_tonic,rg2.rg_exc_tonic,'exc')
-	conn.calculate_balance(rg2.rg_exc_tonic,rg2.rg_inh_irregular,'exc')
-	conn.calculate_balance(rg2.rg_exc_tonic,rg2.rg_inh_tonic,'exc')
-	conn.calculate_balance(rg2.rg_inh_tonic,rg2.rg_inh_irregular,'inh')
-	conn.calculate_balance(rg2.rg_inh_tonic,rg2.rg_inh_tonic,'inh')
-	conn.calculate_balance(rg2.rg_inh_tonic,rg2.rg_exc_irregular,'inh')
-	rg2_balance_pct = conn.calculate_balance(rg2.rg_inh_tonic,rg2.rg_exc_tonic,'inh')
-	if nn.rgs_connected==1:
-		conn.calculate_balance(inh1.inh_pop,rg2.rg_exc_irregular,'inh_strong')
-		conn.calculate_balance(inh1.inh_pop,rg2.rg_exc_tonic,'inh_strong')
-		conn.calculate_balance(inh1.inh_pop,rg2.rg_inh_irregular,'inh_strong')
-		conn.calculate_balance(inh1.inh_pop,rg2.rg_inh_tonic,'inh_strong')
-
-		conn.calculate_balance(inh2.inh_pop,rg1.rg_exc_irregular,'inh_strong')
-		conn.calculate_balance(inh2.inh_pop,rg1.rg_exc_tonic,'inh_strong')
-		conn.calculate_balance(inh2.inh_pop,rg1.rg_inh_irregular,'inh_strong')
-		rg_balance_pct = conn.calculate_balance(inh2.inh_pop,rg1.rg_inh_tonic,'inh_strong')
-
-		#print('RG2 balance %: ',rg2_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
-		print('CPG balance %: ',rg_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
 
 t_start = time.perf_counter()
 nest.Simulate(nn.sim_time)
@@ -124,6 +73,35 @@ senders_inh_tonic2,spiketimes_inh_tonic2 = rg2.read_spike_data(rg2.spike_detecto
 if nn.rgs_connected==1:
 	senders_inhpop1,spiketimes_inhpop1 = inh1.read_spike_data(inh1.spike_detector_inh)
 	senders_inhpop2,spiketimes_inhpop2 = inh2.read_spike_data(inh2.spike_detector_inh)
+
+#Calculate synaptic balance of rg populations and total CPG network
+if nn.calculate_balance==1:
+		
+	rg1_exc_irr_weight = conn.calculate_weighted_balance(rg1.rg_exc_irregular,rg1.spike_detector_rg_exc_irregular)
+	rg1_inh_irr_weight = conn.calculate_weighted_balance(rg1.rg_inh_irregular,rg1.spike_detector_rg_inh_irregular)
+	rg1_exc_tonic_weight = conn.calculate_weighted_balance(rg1.rg_exc_tonic,rg1.spike_detector_rg_exc_tonic)
+	rg1_inh_tonic_weight = conn.calculate_weighted_balance(rg1.rg_inh_tonic,rg1.spike_detector_rg_inh_tonic)
+	weights_per_pop1 = [rg1_exc_irr_weight,rg1_inh_irr_weight,rg1_exc_tonic_weight,rg1_inh_tonic_weight]
+	absolute_weights_per_pop1 = [rg1_exc_irr_weight,abs(rg1_inh_irr_weight),rg1_exc_tonic_weight,abs(rg1_inh_tonic_weight)]
+	rg1_balance_pct = (sum(weights_per_pop1)/sum(absolute_weights_per_pop1))*100
+	print('RG1 balance %: ',rg1_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
+	
+	rg2_exc_irr_weight = conn.calculate_weighted_balance(rg2.rg_exc_irregular,rg2.spike_detector_rg_exc_irregular)
+	rg2_inh_irr_weight = conn.calculate_weighted_balance(rg2.rg_inh_irregular,rg2.spike_detector_rg_inh_irregular)
+	rg2_exc_tonic_weight = conn.calculate_weighted_balance(rg2.rg_exc_tonic,rg2.spike_detector_rg_exc_tonic)
+	rg2_inh_tonic_weight = conn.calculate_weighted_balance(rg2.rg_inh_tonic,rg2.spike_detector_rg_inh_tonic)
+	weights_per_pop2 = [rg2_exc_irr_weight,rg2_inh_irr_weight,rg2_exc_tonic_weight,rg2_inh_tonic_weight]
+	absolute_weights_per_pop2 = [rg2_exc_irr_weight,abs(rg2_inh_irr_weight),rg2_exc_tonic_weight,abs(rg2_inh_tonic_weight)]
+	rg2_balance_pct = (sum(weights_per_pop2)/sum(absolute_weights_per_pop2))*100
+	print('RG2 balance %: ',rg2_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
+	
+	if nn.rgs_connected==1:
+		inh1_weight = conn.calculate_weighted_balance(inh1.inh_pop,inh1.spike_detector_inh)
+		inh2_weight = conn.calculate_weighted_balance(inh2.inh_pop,inh2.spike_detector_inh)
+		weights_per_pop = [rg1_exc_irr_weight,rg1_inh_irr_weight,rg1_exc_tonic_weight,rg1_inh_tonic_weight,rg2_exc_irr_weight,rg2_inh_irr_weight,rg2_exc_tonic_weight,rg2_inh_tonic_weight,inh1_weight,inh1_weight]
+		absolute_weights_per_pop = [rg1_exc_irr_weight,abs(rg1_inh_irr_weight),rg1_exc_tonic_weight,abs(rg1_inh_tonic_weight),rg2_exc_irr_weight,abs(rg2_inh_irr_weight),rg2_exc_tonic_weight,abs(rg2_inh_tonic_weight),abs(inh1_weight),abs(inh1_weight)]
+		cpg_balance_pct = (sum(weights_per_pop)/sum(absolute_weights_per_pop))*100
+		print('CPG balance %: ',cpg_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
 
 if nn.phase_ordered_plot==1:
 	t_start = time.perf_counter()
@@ -196,8 +174,8 @@ if nn.rate_coded_plot==1:
 		spike_bins_inh = spike_bins_inh1+spike_bins_inh2
 		spike_bins_all_pops = spike_bins_rgs+spike_bins_inh
 	t_stop = time.perf_counter()
-	#print('rg1 peaks ',find_peaks(spike_bins_rg1,height=200,prominence=70)[0])
-	#print('rg2 peaks ',find_peaks(spike_bins_rg2,height=200,prominence=70)[0])
+	print('rg1 peaks ',find_peaks(spike_bins_rg1,height=150,prominence=70)[0])
+	print('rg2 peaks ',find_peaks(spike_bins_rg2,height=150,prominence=70)[0])
 	print('Rate coded activity complete, taking ',int(t_stop-t_start),' seconds.')
 
 #Plot phase sorted activity

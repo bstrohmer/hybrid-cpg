@@ -123,7 +123,7 @@ class create_rg_population():
     def count_indiv_spikes(self,total_neurons,neuron_id_data):
         self.spike_count_array = [len(neuron_id_data[0][i]) for i in range(total_neurons)]
         self.less_than_10_indices = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<10]
-        self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 0 else 1
+        self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 1 else 0
         #print('Total neurons with less than 10 spikes: ',len(self.less_than_10_indices))
         return self.spike_count_array,self.neuron_to_sample
 
