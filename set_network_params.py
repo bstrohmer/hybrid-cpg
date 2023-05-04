@@ -24,7 +24,7 @@ class neural_network():
         self.args = args
 
         #Set parameters for network
-        self.rng_seed = np.random.randint(10**7) #if args['seed'] is None else args['seed'] 	#RUN WITH RANDOM SEED	
+        self.rng_seed = np.random.randint(10**7) if args['seed'] is 0 else args['seed'] 	#RUN WITH RANDOM SEED	
         self.time_resolution = args['delta_clock'] 		#equivalent to "delta_clock"
         self.inh_pop_neurons = args['inh_pop_size']
         self.rg_pop_neurons = args['rg_pop_size']
@@ -43,7 +43,6 @@ class neural_network():
         self.C_m_initial_tonic = nest.random.normal(mean=200.0, std=40.0) #pF 500/80
         self.t_ref_initial = nest.random.normal(mean=1.0, std=0.2) #ms
         self.w_exc_initial = nest.random.normal(mean=args['coupling']/args['ratio_exc_inh'], std=args['coupling_std'])+(args['w_exc_multiplier']*args['coupling']) #nS, divide mean weight by exc/inh ratio to keep network balance (control is 2x)
-        #self.w_exc_initial = nest.random.normal(mean=args['coupling'], std=args['coupling_std'])
         self.w_inh_initial = -1*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS        
         self.w_strong_inh_initial = -2*nest.random.normal(mean=args['coupling'], std=args['coupling_std']) #nS
         self.I_e_irregular = nest.random.normal(mean=160.0, std=40.0) #pA Control = 160/40
@@ -71,9 +70,9 @@ class neural_network():
 
 
         #Set neuron parameters
-        self.irregular_neuronparams = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':self.I_e_irregular,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
-        self.irregular_neuronparams_wo_Ie = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':0,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
-        self.tonic_neuronparams = {'C_m':self.C_m_initial_tonic, 'g_L':10.,'E_L':-70.,'V_th':-50.,'Delta_T':2.,'tau_w':30., 'a':3., 'b':0., 'V_reset':-58., 'I_e':self.I_e_tonic,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial} #tonic firing, Naud et al. 2008, Fig 4a
+        self.irregular_neuronparams = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':self.I_e_irregular,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial}#,'I_soma_max':10000.} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
+        self.irregular_neuronparams_wo_Ie = {'C_m':self.C_m_initial_irregular, 'g_L':26.,'E_L':-60.,'V_th':self.V_th_initial,'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':0,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial}#,'I_soma_max':10000.} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
+        self.tonic_neuronparams = {'C_m':self.C_m_initial_tonic, 'g_L':10.,'E_L':-70.,'V_th':-50.,'Delta_T':2.,'tau_w':30., 'a':3., 'b':0., 'V_reset':-58., 'I_e':self.I_e_tonic,'t_ref':self.t_ref_initial,'V_m':self.V_m_initial}#,'I_soma_max':10000.} #tonic firing, Naud et al. 2008, Fig 4a
 
         #Set spike detector parameters 
         self.sd_params = {"withtime" : True, "withgid" : True, 'to_file' : False, 'flush_after_simulate' : False, 'flush_records' : True}
@@ -93,7 +92,7 @@ class neural_network():
         self.conn_dict_custom_cpg = {'rule': 'pairwise_bernoulli', 'p': args['sparsity_cpg']}
 
         #Set multimeter parameters
-        self.mm_params = {'interval': 1., 'record_from': ['V_m', 'g_ex', 'g_in']}
+        self.mm_params = {'interval': 1., 'record_from': ['V_m']}#, 'g_ex', 'g_in']}
 
         #Set noise parameters
         self.noise_params_tonic = {"dt": self.time_resolution, "std":self.noise_std_dev_tonic}

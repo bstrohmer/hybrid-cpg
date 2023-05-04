@@ -20,7 +20,7 @@ remove_silent: true
 rgs_connected: 1
 run_PCA: 1
 save_results: 1
-seed: 2261520 #Control seed: 2261520; 
+seed: 0 #Use 0 for a random seed, Control seed: 2261520; 
 sparsity_rg: 0.03 #Control 0.03
 sparsity_cpg: 0.09 #Control 0.09
 synaptic_delay: 2.
@@ -30,6 +30,6 @@ w_exc_multiplier: 2 #Use this to change the balance of the network through excit
 membrane_potential_plot: 0 #This parameter and below allow selection of specific plots
 pca_plot: 1
 phase_ordered_plot: 1
-raster_plot: 1
+raster_plot: 0
 rate_coded_plot: 1
 spike_distribution_plot: 1
