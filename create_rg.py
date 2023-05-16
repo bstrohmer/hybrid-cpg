@@ -28,11 +28,14 @@ class create_rg_population():
         self.count = 0
         
         #Create populations for rg
-        self.rg_exc_irregular = nest.Create("aeif_cond_alpha",netparams.exc_irregular_count,netparams.irregular_neuronparams)		
-        self.rg_inh_irregular = nest.Create("aeif_cond_alpha",netparams.inh_irregular_count,netparams.irregular_neuronparams)	
-        if netparams.exc_tonic_count != 0: self.rg_exc_tonic = nest.Create("aeif_cond_alpha",netparams.exc_tonic_count,netparams.tonic_neuronparams) 	
-        if netparams.inh_tonic_count != 0: self.rg_inh_tonic = nest.Create("aeif_cond_alpha",netparams.inh_tonic_count,netparams.tonic_neuronparams) 
+        self.irregular_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_irregular_mean, std=netparams.C_m_irregular_std), 'g_L':26.,'E_L':-60.,'V_th':nest.random.normal(mean=netparams.V_th_mean, std=netparams.V_th_std),'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':nest.random.normal(mean=netparams.I_e_irregular_mean, std=netparams.I_e_irregular_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
+        self.tonic_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_tonic_mean, std=netparams.C_m_tonic_std), 'g_L':10.,'E_L':-70.,'V_th':-50.,'Delta_T':2.,'tau_w':30., 'a':3., 'b':0., 'V_reset':-58., 'I_e':nest.random.normal(mean=netparams.I_e_tonic_mean, std=netparams.I_e_tonic_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)}
         
+        self.rg_exc_irregular = nest.Create("aeif_cond_alpha",netparams.exc_irregular_count,self.irregular_neuronparams)
+        self.rg_inh_irregular = nest.Create("aeif_cond_alpha",netparams.inh_irregular_count,self.irregular_neuronparams)	
+        if netparams.exc_tonic_count != 0: self.rg_exc_tonic = nest.Create("aeif_cond_alpha",netparams.exc_tonic_count,self.tonic_neuronparams) 	
+        if netparams.inh_tonic_count != 0: self.rg_inh_tonic = nest.Create("aeif_cond_alpha",netparams.inh_tonic_count,self.tonic_neuronparams)
+
         #Create noise
         self.white_noise_tonic = nest.Create("noise_generator",netparams.noise_params_tonic) 
         self.white_noise_irregular = nest.Create("noise_generator",netparams.noise_params_irregular)     
@@ -58,24 +61,31 @@ class create_rg_population():
         if netparams.inh_tonic_count != 0: nest.Connect(self.white_noise_tonic,self.rg_inh_tonic,"all_to_all") 
 	
         #Connect neurons within rg
-        self.coupling_exc_inh = nest.Connect(self.rg_exc_irregular,self.rg_inh_irregular,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-        self.coupling_exc_exc = nest.Connect(self.rg_exc_irregular,self.rg_exc_irregular,netparams.conn_dict_custom_rg,netparams.exc_syn_params)  	  
-        self.coupling_inh_exc = nest.Connect(self.rg_inh_irregular,self.rg_exc_irregular,netparams.conn_dict_custom_rg,netparams.inh_syn_params)  
-        self.coupling_inh_inh = nest.Connect(self.rg_inh_irregular,self.rg_inh_irregular,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
+        self.inh_syn_params = {"synapse_model":"static_synapse",
+            "weight" : nest.random.normal(mean=netparams.w_inh_mean,std=netparams.w_inh_std), #nS            
+            "delay" : netparams.synaptic_delay}	#ms
+        self.exc_syn_params = {"synapse_model":"static_synapse",
+            "weight" : nest.random.normal(mean=netparams.w_exc_mean,std=netparams.w_exc_std), #nS
+            "delay" : netparams.synaptic_delay}	#ms
+        
+        self.coupling_exc_inh = nest.Connect(self.rg_exc_irregular,self.rg_inh_irregular,netparams.conn_dict_custom_rg,self.exc_syn_params)
+        self.coupling_exc_exc = nest.Connect(self.rg_exc_irregular,self.rg_exc_irregular,netparams.conn_dict_custom_rg,self.exc_syn_params)  	  
+        self.coupling_inh_exc = nest.Connect(self.rg_inh_irregular,self.rg_exc_irregular,netparams.conn_dict_custom_rg,self.inh_syn_params)  
+        self.coupling_inh_inh = nest.Connect(self.rg_inh_irregular,self.rg_inh_irregular,netparams.conn_dict_custom_rg,self.inh_syn_params)
         if netparams.exc_tonic_count != 0: 
-            self.coupling_exc_tonic_inh = nest.Connect(self.rg_exc_tonic,self.rg_inh_irregular,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-            self.coupling_exc_tonic_exc = nest.Connect(self.rg_exc_tonic,self.rg_exc_irregular,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-            self.coupling_exc_inh_tonic = nest.Connect(self.rg_exc_irregular,self.rg_inh_tonic,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-            self.coupling_exc_exc_tonic = nest.Connect(self.rg_exc_irregular,self.rg_exc_tonic,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-            self.coupling_exc_tonic_exc_tonic = nest.Connect(self.rg_exc_tonic,self.rg_exc_tonic,netparams.conn_dict_custom_rg,netparams.exc_syn_params)
-            self.coupling_exc_tonic_inh_tonic = nest.Connect(self.rg_exc_tonic,self.rg_inh_tonic,netparams.conn_dict_custom_rg,netparams.exc_syn_params)            
+            self.coupling_exc_tonic_inh = nest.Connect(self.rg_exc_tonic,self.rg_inh_irregular,netparams.conn_dict_custom_rg,self.exc_syn_params)
+            self.coupling_exc_tonic_exc = nest.Connect(self.rg_exc_tonic,self.rg_exc_irregular,netparams.conn_dict_custom_rg,self.exc_syn_params)
+            self.coupling_exc_inh_tonic = nest.Connect(self.rg_exc_irregular,self.rg_inh_tonic,netparams.conn_dict_custom_rg,self.exc_syn_params)
+            self.coupling_exc_exc_tonic = nest.Connect(self.rg_exc_irregular,self.rg_exc_tonic,netparams.conn_dict_custom_rg,self.exc_syn_params)
+            self.coupling_exc_tonic_exc_tonic = nest.Connect(self.rg_exc_tonic,self.rg_exc_tonic,netparams.conn_dict_custom_rg,self.exc_syn_params)
+            self.coupling_exc_tonic_inh_tonic = nest.Connect(self.rg_exc_tonic,self.rg_inh_tonic,netparams.conn_dict_custom_rg,self.exc_syn_params)            
         if netparams.inh_tonic_count != 0: 
-            self.coupling_inh_tonic_inh = nest.Connect(self.rg_inh_tonic,self.rg_exc_irregular,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
-            self.coupling_inh_tonic_exc = nest.Connect(self.rg_inh_tonic,self.rg_inh_irregular,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
-            self.coupling_inh_exc_tonic = nest.Connect(self.rg_inh_irregular,self.rg_exc_tonic,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
-            self.coupling_inh_inh_tonic = nest.Connect(self.rg_inh_irregular,self.rg_inh_tonic,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
-            self.coupling_inh_tonic_inh_tonic = nest.Connect(self.rg_inh_tonic,self.rg_inh_tonic,netparams.conn_dict_custom_rg,netparams.inh_syn_params)           
-            self.coupling_exc_tonic_inh_tonic = nest.Connect(self.rg_inh_tonic,self.rg_exc_tonic,netparams.conn_dict_custom_rg,netparams.inh_syn_params) 
+            self.coupling_inh_tonic_inh = nest.Connect(self.rg_inh_tonic,self.rg_exc_irregular,netparams.conn_dict_custom_rg,self.inh_syn_params)
+            self.coupling_inh_tonic_exc = nest.Connect(self.rg_inh_tonic,self.rg_inh_irregular,netparams.conn_dict_custom_rg,self.inh_syn_params)
+            self.coupling_inh_exc_tonic = nest.Connect(self.rg_inh_irregular,self.rg_exc_tonic,netparams.conn_dict_custom_rg,self.inh_syn_params)
+            self.coupling_inh_inh_tonic = nest.Connect(self.rg_inh_irregular,self.rg_inh_tonic,netparams.conn_dict_custom_rg,self.inh_syn_params)
+            self.coupling_inh_tonic_inh_tonic = nest.Connect(self.rg_inh_tonic,self.rg_inh_tonic,netparams.conn_dict_custom_rg,self.inh_syn_params)           
+            self.coupling_exc_tonic_inh_tonic = nest.Connect(self.rg_inh_tonic,self.rg_exc_tonic,netparams.conn_dict_custom_rg,self.inh_syn_params) 
 
         #Connect spike detectors to neuron populations
         nest.Connect(self.rg_exc_irregular,self.spike_detector_rg_exc_irregular,"one_to_one")
@@ -97,11 +107,15 @@ class create_rg_population():
         if netparams.inh_tonic_count != 0: 
             nest.Connect(self.mm_rg_inh_tonic,self.rg_inh_tonic)
             
-    def update_neuronal_characteristic(self,update_charac,neuron_population,leakage_value):
+    def update_neuronal_characteristic(self,update_charac,neuron_population,value):
         self.neuron_charac = update_charac
+        print("Updating (charac, value):",self.neuron_charac,value[-1])
+        index = 0
         for neuron in neuron_population:
-            nest.SetStatus(neuron, {self.neuron_charac: leakage_value})
+            nest.SetStatus(neuron, {self.neuron_charac: value[index]})
+            index = index+1
         self.new_val = nest.GetStatus(neuron_population, keys=self.neuron_charac)[0]
+        print(self.new_val)
         return self.new_val
         
     def read_spike_data(self,spike_detector):
@@ -123,9 +137,10 @@ class create_rg_population():
     def count_indiv_spikes(self,total_neurons,neuron_id_data):
         self.spike_count_array = [len(neuron_id_data[0][i]) for i in range(total_neurons)]
         self.less_than_10_indices = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<10]
+        self.silent_neuron_count = [i for i, count in enumerate(self.spike_count_array) if count==0]
         self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 1 else 0
         #print('Total neurons with less than 10 spikes: ',len(self.less_than_10_indices))
-        return self.spike_count_array,self.neuron_to_sample
+        return self.spike_count_array,self.neuron_to_sample,len(self.less_than_10_indices),len(self.silent_neuron_count)
 
     def save_spike_data(self,num_neurons,population,neuron_num_offset):
         spike_time = []
@@ -144,9 +159,7 @@ class create_rg_population():
         spike_time = [0]*int(netparams.sim_time/netparams.time_resolution)
         spike_data = population[0][neuron_number]
         for j in range(spike_data.shape[0]):
-            #print(spike_data[j])
-            #print(spike_data[j]*10)
-            spike_time_index = int(spike_data[j]*10)-1
+            spike_time_index = int(spike_data[j]*(1/netparams.time_resolution))-1
             spike_time[spike_time_index]=spike_data[j]        
         return spike_time
 
@@ -154,7 +167,7 @@ class create_rg_population():
         spike_time = [0]*int(netparams.sim_time/netparams.time_resolution)
         spike_data = population[0][neuron_number]
         for j in range(spike_data.shape[0]):
-            spike_time_index = int(spike_data[j]*10)-1
+            spike_time_index = int(spike_data[j]*(1/netparams.time_resolution))-1
             spike_time[spike_time_index]=1        
         return spike_time
         

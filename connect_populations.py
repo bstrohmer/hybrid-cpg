@@ -27,14 +27,24 @@ class connect():
         
     def create_connections(self,pop1,pop2,syn_type):
         #Connect populations
+        self.inh_syn_params = {"synapse_model":"static_synapse",
+            "weight" : nest.random.normal(mean=netparams.w_inh_mean,std=netparams.w_inh_std), #nS            
+            "delay" : netparams.synaptic_delay}	#ms
+        self.exc_syn_params = {"synapse_model":"static_synapse",
+            "weight" : nest.random.normal(mean=netparams.w_exc_mean,std=netparams.w_exc_std), #nS
+            "delay" : netparams.synaptic_delay}	#ms
+        self.strong_inh_syn_params = {"synapse_model":"static_synapse",
+            "weight" : nest.random.normal(mean=netparams.w_strong_inh_mean,std=netparams.w_strong_inh_std), #nS            
+            "delay" : netparams.synaptic_delay}	#ms
+        
         if syn_type=='exc':
-            self.coupling_populations_exc = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,netparams.exc_syn_params) 
+            self.coupling_populations_exc = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,self.exc_syn_params) 
             #print('Excitatory connections created')
         if syn_type=='inh':
-            self.coupling_populations_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,netparams.inh_syn_params)
+            self.coupling_populations_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_rg,self.inh_syn_params)
             #print('Inhibitory connections created')
         if syn_type=='inh_strong':
-            self.coupling_populations_strong_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_cpg,netparams.strong_inh_syn_params)
+            self.coupling_populations_strong_inh = nest.Connect(pop1,pop2,netparams.conn_dict_custom_cpg,self.strong_inh_syn_params)
             #print('Strong inhibitory connections created')
 
     def sum_weights_per_source(self,population):

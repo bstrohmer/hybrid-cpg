@@ -28,10 +28,13 @@ class create_inh_population():
         self.time_window = 50		#50*0.1=5ms time window, based on time resolution of 0.1
         self.count = 0
         
-        #Create populations for rg	
-        #self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.tonic_neuronparams)
-        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,netparams.irregular_neuronparams)		
-        
+        #Create populations for rg
+        self.irregular_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_irregular_mean, std=netparams.C_m_irregular_std), 'g_L':26.,'E_L':-60.,'V_th':nest.random.normal(mean=netparams.V_th_mean, std=netparams.V_th_std),'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':nest.random.normal(mean=netparams.I_e_irregular_mean, std=netparams.I_e_irregular_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
+        self.tonic_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_tonic_mean, std=netparams.C_m_tonic_std), 'g_L':10.,'E_L':-70.,'V_th':-50.,'Delta_T':2.,'tau_w':30., 'a':3., 'b':0., 'V_reset':-58., 'I_e':nest.random.normal(mean=netparams.I_e_tonic_mean, std=netparams.I_e_tonic_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)}
+        	
+        #self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,self.tonic_neuronparams)
+        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,self.irregular_neuronparams)	
+
         #Create noise
         self.white_noise = nest.Create("noise_generator",netparams.noise_params_irregular)
         
@@ -69,8 +72,9 @@ class create_inh_population():
     def count_indiv_spikes(self,total_neurons,neuron_id_data):
         self.spike_count_array = [len(neuron_id_data[0][i]) for i in range(total_neurons)]
         self.less_than_10_indices = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<10]
+        self.silent_neuron_count = [i for i, count in enumerate(self.spike_count_array) if count==0]
         self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 1 else 0
-        return self.spike_count_array,self.neuron_to_sample      
+        return self.spike_count_array,self.neuron_to_sample,len(self.less_than_10_indices),len(self.silent_neuron_count)      
         
     def save_spike_data(self,num_neurons,population,neuron_num_offset):
         spike_time = []
@@ -89,7 +93,7 @@ class create_inh_population():
         spike_time = [0]*int(netparams.sim_time/netparams.time_resolution)
         spike_data = population[0][neuron_number]
         for j in range(spike_data.shape[0]):
-            spike_time_index = int(spike_data[j]*10)-1
+            spike_time_index = int(spike_data[j]*(1/netparams.time_resolution))-1
             spike_time[spike_time_index]=spike_data[j]        
         return spike_time
 
@@ -97,7 +101,7 @@ class create_inh_population():
         spike_time = [0]*int(netparams.sim_time/netparams.time_resolution)
         spike_data = population[0][neuron_number]
         for j in range(spike_data.shape[0]):
-            spike_time_index = int(spike_data[j]*10)-1
+            spike_time_index = int(spike_data[j]*(1/netparams.time_resolution))-1
             spike_time[spike_time_index]=1        
         return spike_time
 

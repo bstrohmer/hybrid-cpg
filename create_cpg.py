@@ -17,7 +17,7 @@ import pickle, yaml
 import pandas as pd
 from phase_ordering import order_by_phase
 from pca import run_PCA
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks,correlate
 from scipy.fft import fft, fftfreq
 
 ss.nest_start()
@@ -51,7 +51,7 @@ if nn.rgs_connected==1:
 
 print("Seed#: ",nn.rng_seed)
 print("# exc (bursting, tonic): ",nn.exc_irregular_count,nn.exc_tonic_count,"; # inh(bursting, tonic): ",nn.inh_irregular_count,nn.inh_tonic_count,"; # inh buffer: ",nn.inh_pop_neurons)
-
+print("Simulation started.")
 t_start = time.perf_counter()
 nest.Simulate(nn.sim_time)
 t_stop = time.perf_counter()    
@@ -84,7 +84,7 @@ if nn.calculate_balance==1:
 	weights_per_pop1 = [rg1_exc_irr_weight,rg1_inh_irr_weight,rg1_exc_tonic_weight,rg1_inh_tonic_weight]
 	absolute_weights_per_pop1 = [rg1_exc_irr_weight,abs(rg1_inh_irr_weight),rg1_exc_tonic_weight,abs(rg1_inh_tonic_weight)]
 	rg1_balance_pct = (sum(weights_per_pop1)/sum(absolute_weights_per_pop1))*100
-	print('RG1 balance %: ',rg1_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
+	print('RG1 balance %: ',round(rg1_balance_pct,2),' >0 skew excitatory; <0 skew inhibitory')
 	
 	rg2_exc_irr_weight = conn.calculate_weighted_balance(rg2.rg_exc_irregular,rg2.spike_detector_rg_exc_irregular)
 	rg2_inh_irr_weight = conn.calculate_weighted_balance(rg2.rg_inh_irregular,rg2.spike_detector_rg_inh_irregular)
@@ -93,7 +93,7 @@ if nn.calculate_balance==1:
 	weights_per_pop2 = [rg2_exc_irr_weight,rg2_inh_irr_weight,rg2_exc_tonic_weight,rg2_inh_tonic_weight]
 	absolute_weights_per_pop2 = [rg2_exc_irr_weight,abs(rg2_inh_irr_weight),rg2_exc_tonic_weight,abs(rg2_inh_tonic_weight)]
 	rg2_balance_pct = (sum(weights_per_pop2)/sum(absolute_weights_per_pop2))*100
-	print('RG2 balance %: ',rg2_balance_pct,' >0 skew excitatory; <0 skew inhibitory')
+	print('RG2 balance %: ',round(rg2_balance_pct,2),' >0 skew excitatory; <0 skew inhibitory')
 	
 	if nn.rgs_connected==1:
 		inh1_weight = conn.calculate_weighted_balance(inh1.inh_pop,inh1.spike_detector_inh)
@@ -174,9 +174,23 @@ if nn.rate_coded_plot==1:
 		spike_bins_inh = spike_bins_inh1+spike_bins_inh2
 		spike_bins_all_pops = spike_bins_rgs+spike_bins_inh
 	t_stop = time.perf_counter()
-	print('rg1 peaks ',find_peaks(spike_bins_rg1,height=150,prominence=70)[0])
-	print('rg2 peaks ',find_peaks(spike_bins_rg2,height=150,prominence=70)[0])
 	print('Rate coded activity complete, taking ',int(t_stop-t_start),' seconds.')
+	chop_edges_corr = 5000 # timesteps, Chop the edges for a better phase estimation
+	rg1_peaks = find_peaks(spike_bins_rg1[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
+	rg2_peaks = find_peaks(spike_bins_rg2[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
+	avg_rg1_peaks = np.mean(np.diff(rg1_peaks))
+	avg_rg2_peaks = np.mean(np.diff(rg2_peaks))
+	avg_rg_peaks = (avg_rg1_peaks+avg_rg2_peaks)/2
+	print("Peaks RG1: ",rg1_peaks," Average diff (RG1): ",round(avg_rg1_peaks,2))
+	print("Peaks RG2: ",rg2_peaks," Average diff (RG2): ",round(avg_rg2_peaks,2))
+	print("Average diff (RG1+2), Freq: ",round(avg_rg_peaks,2),round(1000/(avg_rg_peaks*nn.time_resolution),2))
+	#Cross correlate RG output to find phase shift between populations	
+	corr_rg = correlate(spike_bins_rg1[chop_edges_corr:-chop_edges_corr], spike_bins_rg2[chop_edges_corr:-chop_edges_corr], mode='same')	
+	max_index_rg = int(np.argmax(corr_rg)) # Find the index of the maximum value in the correlation
+	t2 = np.arange(-(len(corr_rg)-1)/2,(len(corr_rg)-1)/2,1)
+	phase_diff_rg = (t2[max_index_rg]*360)/avg_rg_peaks
+	print("Phase difference RGs (deg): ", round(abs(phase_diff_rg),2))
+	
 
 #Plot phase sorted activity
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==1:
@@ -236,34 +250,39 @@ if nn.raster_plot==1:
 
 #Plot rate-coded output
 if nn.rate_coded_plot==1:
+	chop_edges_rc = 500 # in timesteps
 	t = np.arange(0,len(spike_bins_rg1),1)
 	pylab.figure()
-	pylab.plot(t[200:],spike_bins_rg1[200:],label='RG1')		
-	pylab.plot(t[200:],spike_bins_rg2[200:],label='RG2')
-	#pylab.plot(t[200:],spike_bins_rgs[200:],label='Sum RGs')
+	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1[chop_edges_rc:-chop_edges_rc],label='RG1')		
+	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2[chop_edges_rc:-chop_edges_rc],label='RG2')
 	plt.legend( bbox_to_anchor=(1.1,1.05))		
-	pylab.xlabel('Time (ms)')
+	pylab.xlabel('Time steps')
 	pylab.ylabel('Spike Count')
 	pylab.title('Rate-coded Output per RG')
 	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'rate_coded_output.png',bbox_inches="tight")
 
 if nn.spike_distribution_plot==1:
 	#Count spikes per neuron
-	indiv_spikes_exc1,neuron_to_sample_rg1_irr = rg1.count_indiv_spikes(nn.exc_irregular_count,senders_exc1)
-	indiv_spikes_inh1,neuron_to_sample_rg1_irr_inh = rg1.count_indiv_spikes(nn.inh_irregular_count,senders_inh1)
-	indiv_spikes_exc_tonic1,neuron_to_sample_rg1_ton = rg1.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic1)
-	indiv_spikes_inh_tonic1,neuron_to_sample_rg1_ton_inh = rg1.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic1)
+	indiv_spikes_exc1,neuron_to_sample_rg1_irr,sparse_count1,silent_count1 = rg1.count_indiv_spikes(nn.exc_irregular_count,senders_exc1)
+	indiv_spikes_inh1,neuron_to_sample_rg1_irr_inh,sparse_count2,silent_count2 = rg1.count_indiv_spikes(nn.inh_irregular_count,senders_inh1)
+	indiv_spikes_exc_tonic1,neuron_to_sample_rg1_ton,sparse_count3,silent_count3 = rg1.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic1)
+	indiv_spikes_inh_tonic1,neuron_to_sample_rg1_ton_inh,sparse_count4,silent_count4 = rg1.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic1)
 
-	indiv_spikes_exc2,neuron_to_sample_rg2_irr = rg2.count_indiv_spikes(nn.exc_irregular_count,senders_exc2)
-	indiv_spikes_inh2,neuron_to_sample_rg2_irr_inh = rg2.count_indiv_spikes(nn.inh_irregular_count,senders_inh2)
-	indiv_spikes_exc_tonic2,neuron_to_sample_rg2_ton = rg2.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic2)
-	indiv_spikes_inh_tonic2,neuron_to_sample_rg2_ton_inh = rg2.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic2)
+	indiv_spikes_exc2,neuron_to_sample_rg2_irr,sparse_count5,silent_count5 = rg2.count_indiv_spikes(nn.exc_irregular_count,senders_exc2)
+	indiv_spikes_inh2,neuron_to_sample_rg2_irr_inh,sparse_count6,silent_count6 = rg2.count_indiv_spikes(nn.inh_irregular_count,senders_inh2)
+	indiv_spikes_exc_tonic2,neuron_to_sample_rg2_ton,sparse_count7,silent_count7 = rg2.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic2)
+	indiv_spikes_inh_tonic2,neuron_to_sample_rg2_ton_inh,sparse_count8,silent_count8 = rg2.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic2)
 	all_indiv_spike_counts=indiv_spikes_exc1+indiv_spikes_inh1+indiv_spikes_exc_tonic1+indiv_spikes_inh_tonic1+indiv_spikes_exc2+indiv_spikes_inh2+indiv_spikes_exc_tonic2+indiv_spikes_inh_tonic2
+	sparse_firing_count = sparse_count1+sparse_count2+sparse_count3+sparse_count4+sparse_count5+sparse_count6+sparse_count7+sparse_count8
+	silent_neuron_count = silent_count1+silent_count2+silent_count3+silent_count4+silent_count5+silent_count6+silent_count7+silent_count8
 	if nn.rgs_connected==1:
-		indiv_spikes_inhpop1,neuron_to_sample_inh1 = inh1.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop1)
-		indiv_spikes_inhpop2,neuron_to_sample_inh2 = inh2.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop2)
-		all_indiv_spike_counts=indiv_spikes_exc1+indiv_spikes_inh1+ indiv_spikes_exc_tonic1+indiv_spikes_inh_tonic1+indiv_spikes_exc2+indiv_spikes_inh2+indiv_spikes_exc_tonic2+indiv_spikes_inh_tonic2+indiv_spikes_inhpop1+indiv_spikes_inhpop2
+		indiv_spikes_inhpop1,neuron_to_sample_inh1,sparse_count9,silent_count9 = inh1.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop1)
+		indiv_spikes_inhpop2,neuron_to_sample_inh2,sparse_count10,silent_count10 = inh2.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop2)
+		all_indiv_spike_counts=all_indiv_spike_counts+indiv_spikes_inhpop1+indiv_spikes_inhpop2
+		sparse_firing_count=sparse_firing_count+sparse_count9+sparse_count10
+		silent_neuron_count=silent_neuron_count+silent_count9+silent_count10
 	print('Length of spike count array (all) ',len(all_indiv_spike_counts))
+	print('Total sparse firing, % sparse firing',sparse_firing_count,round(sparse_firing_count*100/(len(all_indiv_spike_counts)-silent_neuron_count),2),'%')
 	spike_distribution = [all_indiv_spike_counts.count(i) for i in range(max(all_indiv_spike_counts))]
 
 	#print('Original spike counts: ',spike_distribution)
