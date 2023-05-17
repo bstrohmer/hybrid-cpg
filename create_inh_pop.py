@@ -29,14 +29,14 @@ class create_inh_population():
         self.count = 0
         
         #Create populations for rg
-        self.irregular_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_irregular_mean, std=netparams.C_m_irregular_std), 'g_L':26.,'E_L':-60.,'V_th':nest.random.normal(mean=netparams.V_th_mean, std=netparams.V_th_std),'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':nest.random.normal(mean=netparams.I_e_irregular_mean, std=netparams.I_e_irregular_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)} #irregular spiking, Naud et al. 2008, C = pF; g_L = nS
+        self.bursting_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_bursting_mean, std=netparams.C_m_bursting_std), 'g_L':26.,'E_L':-60.,'V_th':nest.random.normal(mean=netparams.V_th_mean, std=netparams.V_th_std),'Delta_T':2.,'tau_w':130., 'a':-11., 'b':30., 'V_reset':-48., 'I_e':nest.random.normal(mean=netparams.I_e_bursting_mean, std=netparams.I_e_bursting_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)} #bursting spiking, Naud et al. 2008, C = pF; g_L = nS
         self.tonic_neuronparams = {'C_m':nest.random.normal(mean=netparams.C_m_tonic_mean, std=netparams.C_m_tonic_std), 'g_L':10.,'E_L':-70.,'V_th':-50.,'Delta_T':2.,'tau_w':30., 'a':3., 'b':0., 'V_reset':-58., 'I_e':nest.random.normal(mean=netparams.I_e_tonic_mean, std=netparams.I_e_tonic_std),'t_ref':nest.random.normal(mean=netparams.t_ref_mean, std=netparams.t_ref_std),'V_m':nest.random.normal(mean=netparams.V_m_mean, std=netparams.V_m_std)}
         	
         #self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,self.tonic_neuronparams)
-        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,self.irregular_neuronparams)	
+        self.inh_pop = nest.Create("aeif_cond_alpha",netparams.inh_pop_neurons,self.bursting_neuronparams)	
 
         #Create noise
-        self.white_noise = nest.Create("noise_generator",netparams.noise_params_irregular)
+        self.white_noise = nest.Create("noise_generator",netparams.noise_params_bursting)
         
         #Create spike detectors (for recording spikes)
         self.spike_detector_inh = nest.Create("spike_recorder",netparams.inh_pop_neurons)

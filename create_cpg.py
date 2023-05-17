@@ -33,24 +33,24 @@ if nn.rgs_connected==1:
 	inh2 = inh.create_inh_population()
 
 	#Connect excitatory rg neurons to inhibitory populations
-	conn.create_connections(rg1.rg_exc_irregular,inh1.inh_pop,'exc')  #EXCITATORY CONNECTIONS UPDATED TO SAME SPARSITY AS POST-SYNAPTIC FROM INH POPS
+	conn.create_connections(rg1.rg_exc_bursting,inh1.inh_pop,'exc')  #EXCITATORY CONNECTIONS UPDATED TO SAME SPARSITY AS POST-SYNAPTIC FROM INH POPS
 	conn.create_connections(rg1.rg_exc_tonic,inh1.inh_pop,'exc')
-	conn.create_connections(rg2.rg_exc_irregular,inh2.inh_pop,'exc')
+	conn.create_connections(rg2.rg_exc_bursting,inh2.inh_pop,'exc')
 	conn.create_connections(rg2.rg_exc_tonic,inh2.inh_pop,'exc')
 
 	#Connect inhibitory populations to all rg neurons
-	conn.create_connections(inh1.inh_pop,rg2.rg_exc_irregular,'inh_strong')
+	conn.create_connections(inh1.inh_pop,rg2.rg_exc_bursting,'inh_strong')
 	conn.create_connections(inh1.inh_pop,rg2.rg_exc_tonic,'inh_strong')
-	conn.create_connections(inh1.inh_pop,rg2.rg_inh_irregular,'inh_strong')
+	conn.create_connections(inh1.inh_pop,rg2.rg_inh_bursting,'inh_strong')
 	conn.create_connections(inh1.inh_pop,rg2.rg_inh_tonic,'inh_strong')
 
-	conn.create_connections(inh2.inh_pop,rg1.rg_exc_irregular,'inh_strong')
+	conn.create_connections(inh2.inh_pop,rg1.rg_exc_bursting,'inh_strong')
 	conn.create_connections(inh2.inh_pop,rg1.rg_exc_tonic,'inh_strong')
-	conn.create_connections(inh2.inh_pop,rg1.rg_inh_irregular,'inh_strong')
+	conn.create_connections(inh2.inh_pop,rg1.rg_inh_bursting,'inh_strong')
 	conn.create_connections(inh2.inh_pop,rg1.rg_inh_tonic,'inh_strong')
 
 print("Seed#: ",nn.rng_seed)
-print("# exc (bursting, tonic): ",nn.exc_irregular_count,nn.exc_tonic_count,"; # inh(bursting, tonic): ",nn.inh_irregular_count,nn.inh_tonic_count,"; # inh buffer: ",nn.inh_pop_neurons)
+print("# exc (bursting, tonic): ",nn.exc_bursting_count,nn.exc_tonic_count,"; # inh(bursting, tonic): ",nn.inh_bursting_count,nn.inh_tonic_count,"; # inh buffer: ",nn.inh_pop_neurons)
 print("Simulation started.")
 t_start = time.perf_counter()
 nest.Simulate(nn.sim_time)
@@ -59,13 +59,13 @@ print('Simulation completed. It took ',round(t_stop-t_start,2),' seconds.')
 
 spike_count_array = []
 #Read spike data - rg populations
-senders_exc1,spiketimes_exc1 = rg1.read_spike_data(rg1.spike_detector_rg_exc_irregular)
-senders_inh1,spiketimes_inh1 = rg1.read_spike_data(rg1.spike_detector_rg_inh_irregular)
+senders_exc1,spiketimes_exc1 = rg1.read_spike_data(rg1.spike_detector_rg_exc_bursting)
+senders_inh1,spiketimes_inh1 = rg1.read_spike_data(rg1.spike_detector_rg_inh_bursting)
 senders_exc_tonic1,spiketimes_exc_tonic1 = rg1.read_spike_data(rg1.spike_detector_rg_exc_tonic)
 senders_inh_tonic1,spiketimes_inh_tonic1 = rg1.read_spike_data(rg1.spike_detector_rg_inh_tonic)
 
-senders_exc2,spiketimes_exc2 = rg2.read_spike_data(rg2.spike_detector_rg_exc_irregular)
-senders_inh2,spiketimes_inh2 = rg2.read_spike_data(rg2.spike_detector_rg_inh_irregular)
+senders_exc2,spiketimes_exc2 = rg2.read_spike_data(rg2.spike_detector_rg_exc_bursting)
+senders_inh2,spiketimes_inh2 = rg2.read_spike_data(rg2.spike_detector_rg_inh_bursting)
 senders_exc_tonic2,spiketimes_exc_tonic2 = rg2.read_spike_data(rg2.spike_detector_rg_exc_tonic)
 senders_inh_tonic2,spiketimes_inh_tonic2 = rg2.read_spike_data(rg2.spike_detector_rg_inh_tonic)
 
@@ -77,8 +77,8 @@ if nn.rgs_connected==1:
 #Calculate synaptic balance of rg populations and total CPG network
 if nn.calculate_balance==1:
 		
-	rg1_exc_irr_weight = conn.calculate_weighted_balance(rg1.rg_exc_irregular,rg1.spike_detector_rg_exc_irregular)
-	rg1_inh_irr_weight = conn.calculate_weighted_balance(rg1.rg_inh_irregular,rg1.spike_detector_rg_inh_irregular)
+	rg1_exc_irr_weight = conn.calculate_weighted_balance(rg1.rg_exc_bursting,rg1.spike_detector_rg_exc_bursting)
+	rg1_inh_irr_weight = conn.calculate_weighted_balance(rg1.rg_inh_bursting,rg1.spike_detector_rg_inh_bursting)
 	rg1_exc_tonic_weight = conn.calculate_weighted_balance(rg1.rg_exc_tonic,rg1.spike_detector_rg_exc_tonic)
 	rg1_inh_tonic_weight = conn.calculate_weighted_balance(rg1.rg_inh_tonic,rg1.spike_detector_rg_inh_tonic)
 	weights_per_pop1 = [rg1_exc_irr_weight,rg1_inh_irr_weight,rg1_exc_tonic_weight,rg1_inh_tonic_weight]
@@ -86,8 +86,8 @@ if nn.calculate_balance==1:
 	rg1_balance_pct = (sum(weights_per_pop1)/sum(absolute_weights_per_pop1))*100
 	print('RG1 balance %: ',round(rg1_balance_pct,2),' >0 skew excitatory; <0 skew inhibitory')
 	
-	rg2_exc_irr_weight = conn.calculate_weighted_balance(rg2.rg_exc_irregular,rg2.spike_detector_rg_exc_irregular)
-	rg2_inh_irr_weight = conn.calculate_weighted_balance(rg2.rg_inh_irregular,rg2.spike_detector_rg_inh_irregular)
+	rg2_exc_irr_weight = conn.calculate_weighted_balance(rg2.rg_exc_bursting,rg2.spike_detector_rg_exc_bursting)
+	rg2_inh_irr_weight = conn.calculate_weighted_balance(rg2.rg_inh_bursting,rg2.spike_detector_rg_inh_bursting)
 	rg2_exc_tonic_weight = conn.calculate_weighted_balance(rg2.rg_exc_tonic,rg2.spike_detector_rg_exc_tonic)
 	rg2_inh_tonic_weight = conn.calculate_weighted_balance(rg2.rg_inh_tonic,rg2.spike_detector_rg_inh_tonic)
 	weights_per_pop2 = [rg2_exc_irr_weight,rg2_inh_irr_weight,rg2_exc_tonic_weight,rg2_inh_tonic_weight]
@@ -106,17 +106,17 @@ if nn.calculate_balance==1:
 if nn.phase_ordered_plot==1:
 	t_start = time.perf_counter()
 	#Convolve spike data - rg populations
-	rg_exc_convolved1 = rg1.convolve_spiking_activity(nn.exc_irregular_count,spiketimes_exc1)
+	rg_exc_convolved1 = rg1.convolve_spiking_activity(nn.exc_bursting_count,spiketimes_exc1)
 	rg_exc_tonic_convolved1 = rg1.convolve_spiking_activity(nn.exc_tonic_count,spiketimes_exc_tonic1)
-	rg_inh_convolved1 = rg1.convolve_spiking_activity(nn.inh_irregular_count,spiketimes_inh1)
+	rg_inh_convolved1 = rg1.convolve_spiking_activity(nn.inh_bursting_count,spiketimes_inh1)
 	rg_inh_tonic_convolved1 = rg1.convolve_spiking_activity(nn.inh_tonic_count,spiketimes_inh_tonic1)
 	spikes_convolved_all1 = np.vstack([rg_exc_convolved1,rg_inh_convolved1])
 	spikes_convolved_all1 = np.vstack([spikes_convolved_all1,rg_exc_tonic_convolved1])
 	spikes_convolved_all1 = np.vstack([spikes_convolved_all1,rg_inh_tonic_convolved1])
 
-	rg_exc_convolved2 = rg2.convolve_spiking_activity(nn.exc_irregular_count,spiketimes_exc2)
+	rg_exc_convolved2 = rg2.convolve_spiking_activity(nn.exc_bursting_count,spiketimes_exc2)
 	rg_exc_tonic_convolved2 = rg2.convolve_spiking_activity(nn.exc_tonic_count,spiketimes_exc_tonic2)
-	rg_inh_convolved2 = rg2.convolve_spiking_activity(nn.inh_irregular_count,spiketimes_inh2)
+	rg_inh_convolved2 = rg2.convolve_spiking_activity(nn.inh_bursting_count,spiketimes_inh2)
 	rg_inh_tonic_convolved2 = rg2.convolve_spiking_activity(nn.inh_tonic_count,spiketimes_inh_tonic2)
 	spikes_convolved_all2 = np.vstack([rg_exc_convolved2,rg_inh_convolved2])
 	spikes_convolved_all2 = np.vstack([spikes_convolved_all2,rg_exc_tonic_convolved2])
@@ -155,14 +155,14 @@ if nn.pca_plot==1 and nn.phase_ordered_plot==0:
 #Create Rate Coded Output
 if nn.rate_coded_plot==1:
 	t_start = time.perf_counter()
-	spike_bins_rg_exc1 = rg1.rate_code_spikes(nn.exc_irregular_count,spiketimes_exc1)
-	spike_bins_rg_inh1 = rg1.rate_code_spikes(nn.inh_irregular_count,spiketimes_inh1)
+	spike_bins_rg_exc1 = rg1.rate_code_spikes(nn.exc_bursting_count,spiketimes_exc1)
+	spike_bins_rg_inh1 = rg1.rate_code_spikes(nn.inh_bursting_count,spiketimes_inh1)
 	spike_bins_rg_exc_tonic1 = rg1.rate_code_spikes(nn.exc_tonic_count,spiketimes_exc_tonic1)
 	spike_bins_rg_inh_tonic1 = rg1.rate_code_spikes(nn.inh_tonic_count,spiketimes_inh_tonic1)
 	spike_bins_rg1 = spike_bins_rg_exc1+spike_bins_rg_exc_tonic1+spike_bins_rg_inh1+spike_bins_rg_inh_tonic1
 
-	spike_bins_rg_exc2 = rg2.rate_code_spikes(nn.exc_irregular_count,spiketimes_exc2)
-	spike_bins_rg_inh2 = rg2.rate_code_spikes(nn.inh_irregular_count,spiketimes_inh2)
+	spike_bins_rg_exc2 = rg2.rate_code_spikes(nn.exc_bursting_count,spiketimes_exc2)
+	spike_bins_rg_inh2 = rg2.rate_code_spikes(nn.inh_bursting_count,spiketimes_inh2)
 	spike_bins_rg_exc_tonic2 = rg2.rate_code_spikes(nn.exc_tonic_count,spiketimes_exc_tonic2)
 	spike_bins_rg_inh_tonic2 = rg2.rate_code_spikes(nn.inh_tonic_count,spiketimes_inh_tonic2)
 	spike_bins_rg2=spike_bins_rg_exc2+spike_bins_rg_exc_tonic2+spike_bins_rg_inh2+spike_bins_rg_inh_tonic2
@@ -205,11 +205,11 @@ if nn.phase_ordered_plot==1 and nn.rate_coded_plot==0:
 if nn.raster_plot==1:
 	pylab.figure()
 	pylab.subplot(211)
-	for i in range(nn.exc_irregular_count-1): 
+	for i in range(nn.exc_bursting_count-1): 
 	    pylab.plot(spiketimes_exc1[0][i],senders_exc1[0][i],'.',label='Exc')
 	for i in range(nn.exc_tonic_count-1):
 	    if nn.exc_tonic_count != 0: pylab.plot(spiketimes_exc_tonic1[0][i],senders_exc_tonic1[0][i],'.',label='Exc tonic')
-	for i in range(nn.inh_irregular_count-1):
+	for i in range(nn.inh_bursting_count-1):
 	    pylab.plot(spiketimes_inh1[0][i],senders_inh1[0][i],'.',label='Inh') #offset neuron number by total # of excitatory neurons
 	for i in range(nn.inh_tonic_count-1):
 	    if nn.inh_tonic_count != 0: pylab.plot(spiketimes_inh_tonic1[0][i],senders_inh_tonic1[0][i],'.',label='Inh tonic')   
@@ -217,11 +217,11 @@ if nn.raster_plot==1:
 	pylab.ylabel('Neuron #')
 	pylab.title('Spike Output RGs')
 	pylab.subplot(212)
-	for i in range(nn.exc_irregular_count-1): 
+	for i in range(nn.exc_bursting_count-1): 
 	    pylab.plot(spiketimes_exc2[0][i],senders_exc2[0][i],'.',label='Exc')
 	for i in range(nn.exc_tonic_count-1):
 	    if nn.exc_tonic_count != 0: pylab.plot(spiketimes_exc_tonic2[0][i],senders_exc_tonic2[0][i],'.',label='Exc tonic')
-	for i in range(nn.inh_irregular_count-1):
+	for i in range(nn.inh_bursting_count-1):
 	    pylab.plot(spiketimes_inh2[0][i],senders_inh2[0][i],'.',label='Inh') #offset neuron number by total # of excitatory neurons
 	for i in range(nn.inh_tonic_count-1):
 	    if nn.inh_tonic_count != 0: pylab.plot(spiketimes_inh_tonic2[0][i],senders_inh_tonic2[0][i],'.',label='Inh tonic')
@@ -263,13 +263,13 @@ if nn.rate_coded_plot==1:
 
 if nn.spike_distribution_plot==1:
 	#Count spikes per neuron
-	indiv_spikes_exc1,neuron_to_sample_rg1_irr,sparse_count1,silent_count1 = rg1.count_indiv_spikes(nn.exc_irregular_count,senders_exc1)
-	indiv_spikes_inh1,neuron_to_sample_rg1_irr_inh,sparse_count2,silent_count2 = rg1.count_indiv_spikes(nn.inh_irregular_count,senders_inh1)
+	indiv_spikes_exc1,neuron_to_sample_rg1_irr,sparse_count1,silent_count1 = rg1.count_indiv_spikes(nn.exc_bursting_count,senders_exc1)
+	indiv_spikes_inh1,neuron_to_sample_rg1_irr_inh,sparse_count2,silent_count2 = rg1.count_indiv_spikes(nn.inh_bursting_count,senders_inh1)
 	indiv_spikes_exc_tonic1,neuron_to_sample_rg1_ton,sparse_count3,silent_count3 = rg1.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic1)
 	indiv_spikes_inh_tonic1,neuron_to_sample_rg1_ton_inh,sparse_count4,silent_count4 = rg1.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic1)
 
-	indiv_spikes_exc2,neuron_to_sample_rg2_irr,sparse_count5,silent_count5 = rg2.count_indiv_spikes(nn.exc_irregular_count,senders_exc2)
-	indiv_spikes_inh2,neuron_to_sample_rg2_irr_inh,sparse_count6,silent_count6 = rg2.count_indiv_spikes(nn.inh_irregular_count,senders_inh2)
+	indiv_spikes_exc2,neuron_to_sample_rg2_irr,sparse_count5,silent_count5 = rg2.count_indiv_spikes(nn.exc_bursting_count,senders_exc2)
+	indiv_spikes_inh2,neuron_to_sample_rg2_irr_inh,sparse_count6,silent_count6 = rg2.count_indiv_spikes(nn.inh_bursting_count,senders_inh2)
 	indiv_spikes_exc_tonic2,neuron_to_sample_rg2_ton,sparse_count7,silent_count7 = rg2.count_indiv_spikes(nn.exc_tonic_count,senders_exc_tonic2)
 	indiv_spikes_inh_tonic2,neuron_to_sample_rg2_ton_inh,sparse_count8,silent_count8 = rg2.count_indiv_spikes(nn.inh_tonic_count,senders_inh_tonic2)
 	all_indiv_spike_counts=indiv_spikes_exc1+indiv_spikes_inh1+indiv_spikes_exc_tonic1+indiv_spikes_inh_tonic1+indiv_spikes_exc2+indiv_spikes_inh2+indiv_spikes_exc_tonic2+indiv_spikes_inh_tonic2
@@ -295,9 +295,9 @@ if nn.spike_distribution_plot==1:
 	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spike_distribution.png',bbox_inches="tight")
 
 if nn.membrane_potential_plot==1:
-	#Read membrane potential of an irregularly firing neuron - neuron number <= population size
-	v_m1_irr,t_m1_irr = rg1.read_membrane_potential(rg1.mm_rg_exc_irregular,nn.exc_irregular_count,neuron_to_sample_rg1_irr)
-	v_m2_irr,t_m2_irr = rg2.read_membrane_potential(rg2.mm_rg_exc_irregular,nn.exc_irregular_count,neuron_to_sample_rg2_irr)
+	#Read membrane potential of an bursting neuron - neuron number <= population size
+	v_m1_irr,t_m1_irr = rg1.read_membrane_potential(rg1.mm_rg_exc_bursting,nn.exc_bursting_count,neuron_to_sample_rg1_irr)
+	v_m2_irr,t_m2_irr = rg2.read_membrane_potential(rg2.mm_rg_exc_bursting,nn.exc_bursting_count,neuron_to_sample_rg2_irr)
 
 	#Read membrane potential of a tonically firing neuron - neuron number <= population size
 	v_m1,t_m1 = rg1.read_membrane_potential(rg1.mm_rg_exc_tonic,nn.exc_tonic_count,neuron_to_sample_rg1_ton)

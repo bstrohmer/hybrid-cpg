@@ -31,9 +31,9 @@ class neural_network():
         self.exc_neurons_count = int(np.round(args['rg_pop_size'] * (args['ratio_exc_inh'] / (args['ratio_exc_inh'] + 1)))) # N_E = N*(r / (r+1))
         self.inh_neurons_count = int(np.round(args['rg_pop_size'] * ( 1 / (args['ratio_exc_inh'] + 1))))         # N_I = N*(1 / (r+1))
         self.exc_tonic_count = round(self.exc_neurons_count*args['exc_pct_tonic'])
-        self.exc_irregular_count = self.exc_neurons_count-self.exc_tonic_count
+        self.exc_bursting_count = self.exc_neurons_count-self.exc_tonic_count
         self.inh_tonic_count = round(self.inh_neurons_count*args['inh_pct_tonic'])
-        self.inh_irregular_count = self.inh_neurons_count-self.inh_tonic_count
+        self.inh_bursting_count = self.inh_neurons_count-self.inh_tonic_count
         self.sim_time = args['t_steps']         #time in ms
         
         #Set neuronal and synaptic parameters
@@ -41,8 +41,8 @@ class neural_network():
         self.V_th_std = 1.0 #mV
         self.V_m_mean = -60.0 #mV 
         self.V_m_std = 10.0 #mV
-        self.C_m_irregular_mean = 500.0 #pF
-        self.C_m_irregular_std = 80.0 #pF 
+        self.C_m_bursting_mean = 500.0 #pF
+        self.C_m_bursting_std = 80.0 #pF 
         self.C_m_tonic_mean = 200.0 #pF
         self.C_m_tonic_std =40.0 #pF
         self.t_ref_mean = 1.0 #ms
@@ -56,12 +56,12 @@ class neural_network():
         self.w_strong_inh_mean = -2*args['coupling'] #nS
         self.w_strong_inh_std = args['coupling_std'] #nS
         self.synaptic_delay = args['synaptic_delay']
-        self.I_e_irregular_mean = 160.0 #pA Control = 160
-        self.I_e_irregular_std = 40.0 #pA Control = 40
+        self.I_e_bursting_mean = 160.0 #pA Control = 160
+        self.I_e_bursting_std = 40.0 #pA Control = 40
         self.I_e_tonic_mean = 320.0 #pA Control = 320
         self.I_e_tonic_std = 80.0 #pA Control = 0		
         self.noise_std_dev_tonic = args['noise_amplitude_tonic'] #pA
-        self.noise_std_dev_irregular = args['noise_amplitude_irregular'] #pA
+        self.noise_std_dev_bursting = args['noise_amplitude_bursting'] #pA
         self.freezing_enabled = args['freezing_enabled']
         self.rgs_connected = args['rgs_connected']
 
@@ -93,7 +93,7 @@ class neural_network():
 
         #Set noise parameters
         self.noise_params_tonic = {"dt": self.time_resolution, "std":self.noise_std_dev_tonic}
-        self.noise_params_irregular = {"dt": self.time_resolution, "std":self.noise_std_dev_irregular}
+        self.noise_params_bursting = {"dt": self.time_resolution, "std":self.noise_std_dev_bursting}
         
     ################
     # Save results #

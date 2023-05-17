@@ -13,7 +13,7 @@ inh_pct_tonic: 0.7 #Control 0.7
 rg_pop_size: 2000
 inh_pop_size: 100
 noise_amplitude_tonic: 320. #Current mean 320 
-noise_amplitude_irregular: 160. #Current mean 160
+noise_amplitude_bursting: 160. #Current mean 160
 ratio_exc_inh: 5 #Control 5
 remove_mean: true
 remove_silent: true
