@@ -19,6 +19,7 @@ from phase_ordering import order_by_phase
 from pca import run_PCA
 from scipy.signal import find_peaks,correlate
 from scipy.fft import fft, fftfreq
+from excitations_file_gen import file_gen
 
 ss.nest_start()
 conn=connect() 
@@ -33,7 +34,7 @@ if nn.rgs_connected==1:
 	inh2 = inh.create_inh_population()
 
 	#Connect excitatory rg neurons to inhibitory populations
-	conn.create_connections(rg1.rg_exc_bursting,inh1.inh_pop,'exc')  #EXCITATORY CONNECTIONS UPDATED TO SAME SPARSITY AS POST-SYNAPTIC FROM INH POPS
+	conn.create_connections(rg1.rg_exc_bursting,inh1.inh_pop,'exc')
 	conn.create_connections(rg1.rg_exc_tonic,inh1.inh_pop,'exc')
 	conn.create_connections(rg2.rg_exc_bursting,inh2.inh_pop,'exc')
 	conn.create_connections(rg2.rg_exc_tonic,inh2.inh_pop,'exc')
@@ -175,6 +176,7 @@ if nn.rate_coded_plot==1:
 		spike_bins_all_pops = spike_bins_rgs+spike_bins_inh
 	t_stop = time.perf_counter()
 	print('Rate coded activity complete, taking ',int(t_stop-t_start),' seconds.')
+	'''
 	chop_edges_corr = 5000 # timesteps, Chop the edges for a better phase estimation
 	rg1_peaks = find_peaks(spike_bins_rg1[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
 	rg2_peaks = find_peaks(spike_bins_rg2[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
@@ -190,7 +192,22 @@ if nn.rate_coded_plot==1:
 	t2 = np.arange(-(len(corr_rg)-1)/2,(len(corr_rg)-1)/2,1)
 	phase_diff_rg = (t2[max_index_rg]*360)/avg_rg_peaks
 	print("Phase difference RGs (deg): ", round(abs(phase_diff_rg),2))
-	
+	'''
+	neuron_num_to_plot = 5
+	pylab.figure()
+	pylab.subplot(211)
+	pylab.plot(spikes_convolved_all1[neuron_num_to_plot+nn.exc_bursting_count+nn.inh_bursting_count])	
+	pylab.xlim(2000,4000)
+	pylab.ylabel('Firing rate')
+	pylab.title('Firing Rate vs Spike Output (Single Neuron)')
+	pylab.subplot(212)
+	pylab.plot(spiketimes_exc_tonic1[0][neuron_num_to_plot],senders_exc_tonic1[0][neuron_num_to_plot],'.')
+	pylab.xlim(200,400)
+	pylab.ylabel('Neuron ID')
+	pylab.xlabel('Time (ms)')
+	pylab.subplots_adjust(bottom=0.15)
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_firing_rate.png',bbox_inches="tight")
+
 
 #Plot phase sorted activity
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==1:
@@ -255,7 +272,8 @@ if nn.rate_coded_plot==1:
 	pylab.figure()
 	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1[chop_edges_rc:-chop_edges_rc],label='RG1')		
 	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2[chop_edges_rc:-chop_edges_rc],label='RG2')
-	plt.legend( bbox_to_anchor=(1.1,1.05))		
+	plt.legend( bbox_to_anchor=(1.1,1.05))
+	pylab.ylim(bottom=0)		
 	pylab.xlabel('Time steps')
 	pylab.ylabel('Spike Count')
 	pylab.title('Rate-coded Output per RG')
@@ -322,4 +340,33 @@ if nn.membrane_potential_plot==1:
 	pylab.xlabel('Time (ms)')
 	pylab.ylabel('Membrane potential (mV)')
 	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'membrane_potential_tonic.png',bbox_inches="tight")
+
+#Plot normalized rate-coded output for simulation
+if nn.normalized_rate_coded_plot==1:
+    chop_edges_rc = 500 # in timesteps
+    t = np.arange(0,len(spike_bins_rg1),1)
+
+    # Normalization wrt the max component of the respective population
+    #rg1_max = max(spike_bins_rg1)
+    #rg2_max = max(spike_bins_rg2)
+    #spike_bins_rg1_norm = [s / rg1_max for s in spike_bins_rg1]
+    #spike_bins_rg2_norm = [s / rg2_max for s in spike_bins_rg2]
+
+    # Normalization wrt the max component of both populations
+    rg_max = max(spike_bins_rg1 + spike_bins_rg2)
+    spike_bins_rg1_norm = [s / rg_max for s in spike_bins_rg1]
+    spike_bins_rg2_norm = [s / rg_max for s in spike_bins_rg2]
+
+    pylab.figure()
+    pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],label='RG1_norm')		
+    pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],label='RG2_norm')
+    plt.legend( bbox_to_anchor=(1.1,1.05))		
+    pylab.xlabel('Time steps')
+    pylab.ylabel('Spike Count')
+    pylab.title('Normalized Rate-coded Output per RG')
+    if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'normalized_rate_coded_output.png',bbox_inches="tight")
+
+    # Generate excitation signals file for OpenSim.
+    if nn.excitation_file_generation_arm == 1 or nn.excitation_file_generation_leg == 1:
+        file_gen(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],nn.path,nn.excitation_file_generation_arm,nn.excitation_file_generation_leg,nn.excitation_gain)
 #pylab.show()

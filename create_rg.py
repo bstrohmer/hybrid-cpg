@@ -24,7 +24,7 @@ class create_rg_population():
         self.spiketimes = []
         self.saved_spiketimes = []
         self.saved_senders = []
-        self.time_window = 50		#50*0.1=5ms time window, based on time resolution of 0.1
+        self.time_window = netparams.time_window	#50*0.1=5ms time window, based on time resolution of 0.1
         self.count = 0
         
         #Create populations for rg
@@ -212,7 +212,8 @@ class create_rg_population():
             smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*self.binary_spikes.shape[-1]) : int(self.binary_spikes.shape[-1] - netparams.chop_edges_amount*self.binary_spikes.shape[-1])] # chop edges to remove artifiacts induce by convoing over the gaussian
         if netparams.remove_mean:
             smoothed_spikes = (smoothed_spikes.T - np.mean(smoothed_spikes, axis=1)).T
-        if netparams.high_pass_filtered:            
+        if netparams.high_pass_filtered:
+            #print('High pass filtering the output.')            
             from scipy.signal import butter, sosfilt, filtfilt, sosfiltfilt
             # Same used as in Linden et al, 2022 paper
             b, a = butter(3, .1, 'highpass', fs=1000)		#high pass freq was previously 0.3Hz

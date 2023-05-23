@@ -51,7 +51,7 @@ class neural_network():
         self.w_exc_mean = args['coupling']/args['ratio_exc_inh']+args['w_exc_multiplier']*args['coupling'] #nS
         self.w_exc_std = args['coupling_std'] #nS
         self.w_exc_multiplier = args['w_exc_multiplier']
-        self.w_inh_mean = -1*args['coupling']
+        self.w_inh_mean = -1*args['coupling'] if args['remove_inhibition'] == 0 else args['coupling']
         self.w_inh_std = args['coupling_std'] #nS        
         self.w_strong_inh_mean = -2*args['coupling'] #nS
         self.w_strong_inh_std = args['coupling_std'] #nS
@@ -80,6 +80,11 @@ class neural_network():
         self.pca_plot = args['pca_plot']
         self.phase_ordered_plot = args['phase_ordered_plot']
         self.membrane_potential_plot = args['membrane_potential_plot']
+        self.time_window = args['smoothing_window']
+        self.normalized_rate_coded_plot = args['normalized_rate_coded_plot']
+        self.excitation_file_generation_leg = args['excitation_file_generation_leg']
+        self.excitation_file_generation_arm = args['excitation_file_generation_arm']
+        self.excitation_gain = args['excitation_gain']
 
         #Set spike detector parameters 
         self.sd_params = {"withtime" : True, "withgid" : True, 'to_file' : False, 'flush_after_simulate' : False, 'flush_records' : True}

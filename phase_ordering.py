@@ -30,10 +30,10 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
 
     freqs_pop, psd_pop = signal.welch(population_mean_activity)
     peak_population_mean_activitypsd_freq = freqs_pop[np.where(psd_pop == psd_pop.max())[0][0]]
-       
 
     phase_i = []
     psd_indiv = []
+    count_min_sca = 0
     for convolved_activity_neuron_i in convolved_activity:
         # Cross spectral density or cross power spectrum of x,y.
         f, Pxy = signal.csd(convolved_activity_neuron_i,population_mean_activity)
@@ -45,7 +45,10 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         
         phase_i.append(phase_activity[index_])
         #psd_indiv.append(psd_indiv_neuron)
-
+    
+    #min_sca = np.min(convolved_activity)   
+    #count_min_sca = np.count_nonzero(convolved_activity == min_sca)
+    #print('Convolved activity min, occurences', min_sca,count_min_sca) 
     #print('Sample psd output',psd_indiv_neuron)
     sorted_idx = sorted(range(len(phase_i)), key=lambda k:phase_i[k])
     sorted_convolved_activity = convolved_activity[sorted_idx]
@@ -53,14 +56,14 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
     if generate_plot:
         figConv, axsConv = pyplot.subplots(2, figsize=(10,8))
         figConv.suptitle('Convolved Activity')
-        im = axsConv[0].imshow(convolved_activity, aspect='auto', vmin=-1, vmax=1)
+        im = axsConv[0].imshow(convolved_activity, aspect='auto', vmin=0, vmax=1)
         axsConv[0].set(title='Unsorted', ylabel='Neuron idx #')
         #********************ADD COLORBAR TO PLOT*****************************
         divider = make_axes_locatable(axsConv[0])
         cax = divider.append_axes("right", size="5%", pad=0.05)
         pyplot.colorbar(im,cax=cax)
         
-        im = axsConv[1].imshow(sorted_convolved_activity, aspect='auto', vmin=-1, vmax=1)
+        im = axsConv[1].imshow(sorted_convolved_activity, aspect='auto', vmin=0, vmax=1)
         #axsConv[1].set(title='Phase sorted', xlabel='Time [ms]', ylabel='Neuron idx #')
         axsConv[1].set(xlabel='Time [ms]', ylabel='Neuron idx #')
         #********************ADD COLORBAR TO PLOT*****************************
@@ -77,6 +80,7 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         #print('The avg probability density is: ',average_bin_height)
         #print('The avg difference is: ',average_diff_bin_height)
         pyplot.axhline(y=sum(count)/len(count), linewidth=2, color='r')
+        pyplot.xlim(-np.pi,np.pi)
         pyplot.xlabel('Phase (rad)')
         pyplot.ylabel('Probability density')
         pyplot.title('Phase distribution')

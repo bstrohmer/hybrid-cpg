@@ -25,7 +25,7 @@ class create_inh_population():
         self.spiketimes = []
         self.saved_spiketimes = []
         self.saved_senders = []
-        self.time_window = 50		#50*0.1=5ms time window, based on time resolution of 0.1
+        self.time_window = netparams.time_window #50*0.1=5ms time window, based on time resolution of 0.1
         self.count = 0
         
         #Create populations for rg

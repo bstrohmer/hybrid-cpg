@@ -15,12 +15,14 @@ inh_pop_size: 100
 noise_amplitude_tonic: 320. #Current mean 320 
 noise_amplitude_bursting: 160. #Current mean 160
 ratio_exc_inh: 5 #Control 5
+remove_inhibition: 0 #Use 1 to remove inhibition within the RG populations
 remove_mean: true
 remove_silent: true
-rgs_connected: 1
+rgs_connected: 1 #Use 0 to remove mutual inhibition between the RG populations
 run_PCA: 1
 save_results: 1
 seed: 2261520 #Use 0 for a random seed, Control seed: 2261520; 
+smoothing_window: 50 #Ex. 50: 50*0.1=5ms time window
 sparsity_rg: 0.03 #Control 0.03
 sparsity_cpg: 0.09 #Control 0.09
 synaptic_delay: 2.
@@ -32,4 +34,13 @@ pca_plot: 1
 phase_ordered_plot: 1
 raster_plot: 0
 rate_coded_plot: 1
-spike_distribution_plot: 1
+spike_distribution_plot: 0
+
+# To print into a new file and visualize the normalized rate-coded activity of RG populations
+normalized_rate_coded_plot: 1
+
+# Choose which simulation model (leg or arm) to be used.
+excitation_file_generation_leg: 1
+excitation_file_generation_arm: 0
+excitation_gain: 0.5
+
