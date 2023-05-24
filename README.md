@@ -22,6 +22,7 @@ create_rg.py - creates a single rhythm-generating population<br>
 create_inh_pop.py - creates a single inhibitory population<br>
 phase_ordering.py - compares single neuron activity to mean population activity and orders the output by phase<br>
 pca.py - runs a PCA on the convolved spiking activity from the individual RGs and the overall network output<br>
+excitations_file_gen.py - creates the file for import to OpenSim for feed-forward control of a musculoskeletal model<br>
 set_network_params.py - sets the general network parameters, some of these parameters are taken from the yaml file, others must be set from within this script<br>
 start_simulation.py - starts the NEST simulation, select number of cores to run the simulation on - this must less than or equal to the number of CPU cores available on your computer<br>
 
