@@ -71,10 +71,11 @@ class create_inh_population():
 
     def count_indiv_spikes(self,total_neurons,neuron_id_data):
         self.spike_count_array = [len(neuron_id_data[0][i]) for i in range(total_neurons)]
-        self.less_than_10_indices = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<10]
+        self.sparse_count_max = 4*(netparams.sim_time/1000)	#Spiking 2 times per period considered sparse
+        self.sparse_firing_count = [i for i, count in enumerate(self.spike_count_array) if count>=1 and count<=self.sparse_count_max]
         self.silent_neuron_count = [i for i, count in enumerate(self.spike_count_array) if count==0]
-        self.neuron_to_sample = self.less_than_10_indices[1] if len(self.less_than_10_indices) > 1 else 0
-        return self.spike_count_array,self.neuron_to_sample,len(self.less_than_10_indices),len(self.silent_neuron_count)      
+        self.neuron_to_sample = self.sparse_firing_count[1] if len(self.sparse_firing_count) > 1 else 0
+        return self.spike_count_array,self.neuron_to_sample,len(self.sparse_firing_count),len(self.silent_neuron_count)     
         
     def save_spike_data(self,num_neurons,population,neuron_num_offset):
         spike_time = []
@@ -120,12 +121,22 @@ class create_inh_population():
                 spike_bins_current += spikes_per_bin
         spike_bins_current = self.sliding_time_window(spike_bins_current,self.time_window)
         from scipy.ndimage import gaussian_filter
-        smoothed_spike_bins = gaussian_filter(spike_bins_current, netparams.convstd)
+        smoothed_spike_bins = gaussian_filter(spike_bins_current, netparams.convstd_rate)
+        if netparams.chop_edges_amount > 0.0:
+            smoothed_spike_bins = smoothed_spike_bins[int(netparams.chop_edges_amount):int(-netparams.chop_edges_amount)]
         return smoothed_spike_bins
         
     def sliding_time_window(self,signal, window_size):
         windows = np.lib.stride_tricks.sliding_window_view(signal, window_size)
-        return np.sum(windows, axis=1)    
+        return np.sum(windows, axis=1)
+    
+    def sliding_time_window_matrix(self,signal, window_size):
+        result = []
+        for row in signal:
+            windows = np.lib.stride_tricks.sliding_window_view(row, window_size)
+            row_sum = np.sum(windows, axis=1)
+            result.append(row_sum)
+        return np.array(result)    
    
     def smooth(self, data, sd):
         data = copy.copy(data)       
@@ -141,9 +152,12 @@ class create_inh_population():
     def convolve_spiking_activity(self,population_size,population):
         time_steps = int(netparams.sim_time/netparams.time_resolution)
         self.binary_spikes = np.vstack([self.single_neuron_spikes_binary(i, population) for i in range(population_size)])
-        smoothed_spikes = self.smooth(self.binary_spikes, netparams.convstd)
+        binned_spikes = self.sliding_time_window_matrix(self.binary_spikes,self.time_window)
+        smoothed_spikes = self.smooth(binned_spikes, netparams.convstd_pca)
+        #smoothed_spikes = self.smooth(self.binary_spikes, netparams.convstd_pca)
         if netparams.chop_edges_amount > 0.0:
-            smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*self.binary_spikes.shape[-1]) : int(self.binary_spikes.shape[-1] - netparams.chop_edges_amount*self.binary_spikes.shape[-1])] # chop edges to remove artifiacts induce by convoing over the gaussian
+            #smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*self.binary_spikes.shape[-1]) : int(self.binary_spikes.shape[-1] - netparams.chop_edges_amount*self.binary_spikes.shape[-1])] # chop edges to remove artifacts induce by convolving over the gaussian
+            smoothed_spikes = smoothed_spikes[:,int(netparams.chop_edges_amount):int(-netparams.chop_edges_amount)]
         if netparams.remove_mean:
             smoothed_spikes = (smoothed_spikes.T - np.mean(smoothed_spikes, axis=1)).T
         if netparams.high_pass_filtered:            
@@ -151,11 +165,11 @@ class create_inh_population():
             # Same used as in Linden et al, 2022 paper
             b, a = butter(3, .1, 'highpass', fs=1000)   #high pass freq was previously 0.3Hz
             smoothed_spikes = filtfilt(b, a, smoothed_spikes)
-            smoothed_spikes = smoothed_spikes[:, int(netparams.chop_edges_amount*smoothed_spikes.shape[-1]) : int(smoothed_spikes.shape[-1] - netparams.chop_edges_amount*smoothed_spikes.shape[-1])]
         if netparams.downsampling_convolved:
             from scipy.signal import decimate
             smoothed_spikes = decimate(smoothed_spikes, int(1/netparams.time_resolution), n=2, ftype='iir', zero_phase=True)
-        smoothed_spikes = smoothed_spikes[:, :-self.time_window+1]
+        smoothed_spikes = smoothed_spikes[:, :-self.time_window+1] #truncate array by the width of the time window
+        #smoothed_spikes = (smoothed_spikes-np.min(smoothed_spikes))/(np.max(smoothed_spikes)-np.min(smoothed_spikes)) #normalize the output
         return smoothed_spikes
         
 inh = create_inh_population()       	        

@@ -60,32 +60,7 @@ def run_PCA(smoothed_spikes,pop_name):
     cluster_times = np.zeros(len(labels))
     for i, label in enumerate(labels):
         cluster_times[label] += durations[i]
-    '''    
-    # Create a color map based on the time values
-    cmap = pyplot.get_cmap('viridis')
-    time = np.arange(0,np.shape(smoothed_spikes)[1],1)
-    colors = cmap(time)
-    # Plot the PCA data with colors based on time
-    pyplot.figure()
-    pyplot.scatter(pca_data[:, 0], pca_data[:, 1],s=1)
-    # Add a color bar to the plot
-    cb = pyplot.colorbar()
-    cb.set_label('Time')
-    # Add axis labels and a title to the plot
-    pyplot.xlabel('PCA Component 1')
-    pyplot.ylabel('PCA Component 2')
-    pyplot.title('PCA with Time Dimension')
-    if netparams.args['save_results']: pyplot.savefig(netparams.pathFigures + '/' + 'PCA_2D_time_'+ pop_name +'.png')
 
-    from sklearn.manifold import TSNE
-    tsne = TSNE(n_components=2)
-    tsne_data = tsne.fit_transform(data)   
-    pyplot.figure()
-    pyplot.scatter(tsne_data[:, 0], tsne_data[:, 1], c=labels)
-    pyplot.xlabel('t-SNE 1')
-    pyplot.ylabel('t-SNE 2')
-    if netparams.args['save_results']: pyplot.savefig(netparams.pathFigures + '/' + 'tsne_2D'+ pop_name +'.png')
-    '''
     print(f'\nPCA analysis:')
     print("Cluster times:", cluster_times[:5])
     print(f'    Explained variance: {np.round(pca.explained_variance_ratio_,2)}')

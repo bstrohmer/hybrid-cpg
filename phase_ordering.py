@@ -28,16 +28,18 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         b, a = butter(3, .1, 'highpass', fs=1000)		#high pass freq was previously 0.3Hz
         population_mean_activity = filtfilt(b, a, population_mean_activity)		#high pass filter the mean activity
 
-    freqs_pop, psd_pop = signal.welch(population_mean_activity)
+    #population_mean_activity = (population_mean_activity-np.min(population_mean_activity))/(np.max(population_mean_activity)-np.min(population_mean_activity))
+    freqs_pop, psd_pop = signal.welch(population_mean_activity,fs=10) #sampling frequency is 1 by default
+    #print('Freq mean activity: ',freqs_pop)
     peak_population_mean_activitypsd_freq = freqs_pop[np.where(psd_pop == psd_pop.max())[0][0]]
+    #print('Peak pop mean activity freq: ',peak_population_mean_activitypsd_freq)
 
     phase_i = []
     psd_indiv = []
-    count_min_sca = 0
     for convolved_activity_neuron_i in convolved_activity:
         # Cross spectral density or cross power spectrum of x,y.
-        f, Pxy = signal.csd(convolved_activity_neuron_i,population_mean_activity)
-        
+        f, Pxy = signal.csd(convolved_activity_neuron_i,population_mean_activity,fs=10) #sampling frequency is 1 by default
+        #print('Freq csd: ',f)
         index_ = np.where(f == peak_population_mean_activitypsd_freq)[0][0]
         phase_activity = np.angle(Pxy)
         
@@ -46,9 +48,9 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
         phase_i.append(phase_activity[index_])
         #psd_indiv.append(psd_indiv_neuron)
     
-    #min_sca = np.min(convolved_activity)   
-    #count_min_sca = np.count_nonzero(convolved_activity == min_sca)
-    #print('Convolved activity min, occurences', min_sca,count_min_sca) 
+    #Normalize activity and sort
+    max_activity = np.max(convolved_activity)
+    #convolved_activity = (convolved_activity-np.min(convolved_activity))/(np.max(convolved_activity)-np.min(convolved_activity))
     #print('Sample psd output',psd_indiv_neuron)
     sorted_idx = sorted(range(len(phase_i)), key=lambda k:phase_i[k])
     sorted_convolved_activity = convolved_activity[sorted_idx]
@@ -56,14 +58,14 @@ def order_by_phase(convolved_activity, population_mean_activity, pop_name, remov
     if generate_plot:
         figConv, axsConv = pyplot.subplots(2, figsize=(10,8))
         figConv.suptitle('Convolved Activity')
-        im = axsConv[0].imshow(convolved_activity, aspect='auto', vmin=0, vmax=1)
+        im = axsConv[0].imshow(convolved_activity, aspect='auto', interpolation='nearest')#, vmin=0, vmax=1)
         axsConv[0].set(title='Unsorted', ylabel='Neuron idx #')
         #********************ADD COLORBAR TO PLOT*****************************
         divider = make_axes_locatable(axsConv[0])
         cax = divider.append_axes("right", size="5%", pad=0.05)
         pyplot.colorbar(im,cax=cax)
         
-        im = axsConv[1].imshow(sorted_convolved_activity, aspect='auto', vmin=0, vmax=1)
+        im = axsConv[1].imshow(sorted_convolved_activity, aspect='auto', interpolation='nearest')#, vmin=0, vmax=1)
         #axsConv[1].set(title='Phase sorted', xlabel='Time [ms]', ylabel='Neuron idx #')
         axsConv[1].set(xlabel='Time [ms]', ylabel='Neuron idx #')
         #********************ADD COLORBAR TO PLOT*****************************

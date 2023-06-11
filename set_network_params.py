@@ -66,7 +66,8 @@ class neural_network():
         self.rgs_connected = args['rgs_connected']
 
         #Set data evaluation parameters
-        self.convstd = args['convstd']
+        self.convstd_rate = args['convstd_rate']
+        self.convstd_pca = args['convstd_pca']
         self.chop_edges_amount = args['chop_edges_amount']
         self.remove_mean = args['remove_mean']
         self.high_pass_filtered = args['high_pass_filtered']
@@ -114,4 +115,9 @@ class neural_network():
         with open(path + '/args_' + id_ + '.yaml', 'w') as yamlfile:
             #args['seed'] = simulation_config['seed']
             yaml.dump(args, yamlfile)
+            
+def normalize_rows(matrix):
+    max_values = np.max(matrix, axis=1, keepdims=True)
+    normalized_matrix = matrix / max_values
+    return normalized_matrix
 

@@ -10,6 +10,7 @@ import random
 import time
 import start_simulation as ss
 import set_network_params as netparams
+from set_network_params import normalize_rows
 import create_rg as rg
 import create_inh_pop as inh
 from connect_populations import connect
@@ -108,17 +109,25 @@ if nn.phase_ordered_plot==1:
 	t_start = time.perf_counter()
 	#Convolve spike data - rg populations
 	rg_exc_convolved1 = rg1.convolve_spiking_activity(nn.exc_bursting_count,spiketimes_exc1)
+	#rg_exc_convolved1 = (rg_exc_convolved1-np.min(rg_exc_convolved1))/(np.max(rg_exc_convolved1)-np.min(rg_exc_convolved1))
 	rg_exc_tonic_convolved1 = rg1.convolve_spiking_activity(nn.exc_tonic_count,spiketimes_exc_tonic1)
+	#rg_exc_tonic_convolved1 = (rg_exc_tonic_convolved1-np.min(rg_exc_tonic_convolved1))/(np.max(rg_exc_tonic_convolved1)-np.min(rg_exc_tonic_convolved1))
 	rg_inh_convolved1 = rg1.convolve_spiking_activity(nn.inh_bursting_count,spiketimes_inh1)
+	#rg_inh_convolved1 = (rg_inh_convolved1-np.min(rg_inh_convolved1))/(np.max(rg_inh_convolved1)-np.min(rg_inh_convolved1))
 	rg_inh_tonic_convolved1 = rg1.convolve_spiking_activity(nn.inh_tonic_count,spiketimes_inh_tonic1)
+	#rg_inh_tonic_convolved1 = (rg_inh_tonic_convolved1-np.min(rg_inh_tonic_convolved1))/(np.max(rg_inh_tonic_convolved1)-np.min(rg_inh_tonic_convolved1))
 	spikes_convolved_all1 = np.vstack([rg_exc_convolved1,rg_inh_convolved1])
 	spikes_convolved_all1 = np.vstack([spikes_convolved_all1,rg_exc_tonic_convolved1])
 	spikes_convolved_all1 = np.vstack([spikes_convolved_all1,rg_inh_tonic_convolved1])
 
 	rg_exc_convolved2 = rg2.convolve_spiking_activity(nn.exc_bursting_count,spiketimes_exc2)
+	#rg_exc_convolved2 = (rg_exc_convolved2-np.min(rg_exc_convolved2))/(np.max(rg_exc_convolved2)-np.min(rg_exc_convolved2))
 	rg_exc_tonic_convolved2 = rg2.convolve_spiking_activity(nn.exc_tonic_count,spiketimes_exc_tonic2)
+	#rg_exc_tonic_convolved2 = (rg_exc_tonic_convolved2-np.min(rg_exc_tonic_convolved2))/(np.max(rg_exc_tonic_convolved2)-np.min(rg_exc_tonic_convolved2))
 	rg_inh_convolved2 = rg2.convolve_spiking_activity(nn.inh_bursting_count,spiketimes_inh2)
+	#rg_inh_convolved2 = (rg_inh_convolved2-np.min(rg_inh_convolved2))/(np.max(rg_inh_convolved2)-np.min(rg_inh_convolved2))
 	rg_inh_tonic_convolved2 = rg2.convolve_spiking_activity(nn.inh_tonic_count,spiketimes_inh_tonic2)
+	#rg_inh_tonic_convolved2 = (rg_inh_tonic_convolved2-np.min(rg_inh_tonic_convolved2))/(np.max(rg_inh_tonic_convolved2)-np.min(rg_inh_tonic_convolved2))
 	spikes_convolved_all2 = np.vstack([rg_exc_convolved2,rg_inh_convolved2])
 	spikes_convolved_all2 = np.vstack([spikes_convolved_all2,rg_exc_tonic_convolved2])
 	spikes_convolved_all2 = np.vstack([spikes_convolved_all2,rg_inh_tonic_convolved2])
@@ -128,20 +137,25 @@ if nn.phase_ordered_plot==1:
 	#Convolve spike data - inh populations
 	if nn.rgs_connected==1:
 		inh1_convolved = inh1.convolve_spiking_activity(nn.inh_pop_neurons,spiketimes_inhpop1)
+		#inh1_convolved = (inh1_convolved-np.min(inh1_convolved))/(np.max(inh1_convolved)-np.min(inh1_convolved))
 		inh2_convolved = inh2.convolve_spiking_activity(nn.inh_pop_neurons,spiketimes_inhpop2)
-
-		#spikes_convolved_complete_network = np.vstack([spikes_convolved_all1,spikes_convolved_all2])
-		spikes_convolved_complete_network = np.vstack([spikes_convolved_rgs,inh1_convolved])
-		spikes_convolved_complete_network = np.vstack([spikes_convolved_complete_network,inh2_convolved])
+		#inh2_convolved = (inh2_convolved-np.min(inh2_convolved))/(np.max(inh2_convolved)-np.min(inh2_convolved))
+		spikes_convolved_inh = np.vstack([inh1_convolved,inh2_convolved])		
+		spikes_convolved_complete_network = np.vstack([spikes_convolved_complete_network,spikes_convolved_inh])
 
 	if nn.remove_silent:
+	    #print('Spikes convolved array shape: ',spikes_convolved_all1.shape[0],spikes_convolved_all1.shape[1])
 	    print('Removing silent neurons')
 	    spikes_convolved_all1 = spikes_convolved_all1[~np.all(spikes_convolved_all1 == 0, axis=1)]
 	    spikes_convolved_all2 = spikes_convolved_all2[~np.all(spikes_convolved_all2 == 0, axis=1)]
 	    spikes_convolved_rgs = spikes_convolved_rgs[~np.all(spikes_convolved_rgs == 0, axis=1)]
-	    if nn.rgs_connected==1:
-	        spikes_convolved_complete_network = spikes_convolved_complete_network[~np.all(spikes_convolved_complete_network == 0, axis=1)]
+	    #print('Spikes convolved array shape (after silent removed): ',spikes_convolved_all1.shape[0],spikes_convolved_all1.shape[1])
+	    spikes_convolved_complete_network = spikes_convolved_complete_network[~np.all(spikes_convolved_complete_network == 0, axis=1)]
 	t_stop = time.perf_counter()
+	spikes_convolved_all1 = normalize_rows(spikes_convolved_all1)
+	spikes_convolved_all2 = normalize_rows(spikes_convolved_all2)
+	spikes_convolved_rgs = normalize_rows(spikes_convolved_rgs)
+	spikes_convolved_complete_network = normalize_rows(spikes_convolved_complete_network)	
 	print('Convolved spiking activity complete, taking ',int(t_stop-t_start),' seconds.') #Originally 9 seconds for a 500ms simulation
 
 #Run PCA - rg populations
@@ -161,25 +175,28 @@ if nn.rate_coded_plot==1:
 	spike_bins_rg_exc_tonic1 = rg1.rate_code_spikes(nn.exc_tonic_count,spiketimes_exc_tonic1)
 	spike_bins_rg_inh_tonic1 = rg1.rate_code_spikes(nn.inh_tonic_count,spiketimes_inh_tonic1)
 	spike_bins_rg1 = spike_bins_rg_exc1+spike_bins_rg_exc_tonic1+spike_bins_rg_inh1+spike_bins_rg_inh_tonic1
+	spike_bins_rg1 = (spike_bins_rg1-np.min(spike_bins_rg1))/(np.max(spike_bins_rg1)-np.min(spike_bins_rg1))
 
 	spike_bins_rg_exc2 = rg2.rate_code_spikes(nn.exc_bursting_count,spiketimes_exc2)
 	spike_bins_rg_inh2 = rg2.rate_code_spikes(nn.inh_bursting_count,spiketimes_inh2)
 	spike_bins_rg_exc_tonic2 = rg2.rate_code_spikes(nn.exc_tonic_count,spiketimes_exc_tonic2)
 	spike_bins_rg_inh_tonic2 = rg2.rate_code_spikes(nn.inh_tonic_count,spiketimes_inh_tonic2)
 	spike_bins_rg2=spike_bins_rg_exc2+spike_bins_rg_exc_tonic2+spike_bins_rg_inh2+spike_bins_rg_inh_tonic2
+	spike_bins_rg2 = (spike_bins_rg2-np.min(spike_bins_rg2))/(np.max(spike_bins_rg2)-np.min(spike_bins_rg2))
 	spike_bins_rgs = spike_bins_rg1+spike_bins_rg2
 	
 	if nn.rgs_connected==1:
 		spike_bins_inh1 = inh1.rate_code_spikes(nn.inh_pop_neurons,spiketimes_inhpop1)
 		spike_bins_inh2 = inh2.rate_code_spikes(nn.inh_pop_neurons,spiketimes_inhpop2)
 		spike_bins_inh = spike_bins_inh1+spike_bins_inh2
+		spike_bins_inh = (spike_bins_inh-np.min(spike_bins_inh))/(np.max(spike_bins_inh)-np.min(spike_bins_inh))
 		spike_bins_all_pops = spike_bins_rgs+spike_bins_inh
 	t_stop = time.perf_counter()
 	print('Rate coded activity complete, taking ',int(t_stop-t_start),' seconds.')
-	'''
-	chop_edges_corr = 5000 # timesteps, Chop the edges for a better phase estimation
-	rg1_peaks = find_peaks(spike_bins_rg1[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
-	rg2_peaks = find_peaks(spike_bins_rg2[chop_edges_corr:-chop_edges_corr],height=200,distance=1000)[0]
+	
+	#chop_edges_corr = nn.chop_edges_amount if nn.chop_edges_amount>0 else 0 # timesteps, Chop the edges for a better phase estimation
+	rg1_peaks = find_peaks(spike_bins_rg1,height=0.4,distance=1500)[0]
+	rg2_peaks = find_peaks(spike_bins_rg2,height=0.4,distance=1500)[0]
 	avg_rg1_peaks = np.mean(np.diff(rg1_peaks))
 	avg_rg2_peaks = np.mean(np.diff(rg2_peaks))
 	avg_rg_peaks = (avg_rg1_peaks+avg_rg2_peaks)/2
@@ -187,34 +204,64 @@ if nn.rate_coded_plot==1:
 	print("Peaks RG2: ",rg2_peaks," Average diff (RG2): ",round(avg_rg2_peaks,2))
 	print("Average diff (RG1+2), Freq: ",round(avg_rg_peaks,2),round(1000/(avg_rg_peaks*nn.time_resolution),2))
 	#Cross correlate RG output to find phase shift between populations	
-	corr_rg = correlate(spike_bins_rg1[chop_edges_corr:-chop_edges_corr], spike_bins_rg2[chop_edges_corr:-chop_edges_corr], mode='same')	
+	corr_rg = correlate(spike_bins_rg1, spike_bins_rg2, mode='same')	
 	max_index_rg = int(np.argmax(corr_rg)) # Find the index of the maximum value in the correlation
 	t2 = np.arange(-(len(corr_rg)-1)/2,(len(corr_rg)-1)/2,1)
 	phase_diff_rg = (t2[max_index_rg]*360)/avg_rg_peaks
 	print("Phase difference RGs (deg): ", round(abs(phase_diff_rg),2))
+	
+	neuron_num_to_plot = int(spikes_convolved_all1.shape[0]/5)
+	#pylab.figure()
+	#pylab.subplot(211)
+	fig, ax = plt.subplots(5, sharex=True, figsize=(15, 8))	
+	ax[0].plot(spikes_convolved_all1[neuron_num_to_plot])
+	ax[1].plot(spikes_convolved_all1[neuron_num_to_plot*2])
+	ax[2].plot(spikes_convolved_all1[neuron_num_to_plot*3])
+	ax[3].plot(spikes_convolved_all1[neuron_num_to_plot*4])
+	ax[4].plot(spike_bins_rg1,label='RG1')
+	ax[0].set_title('Firing rate individual neurons vs Population activity (RG1)')
+	ax[0].set_ylabel('Exc Bursting')
+	ax[1].set_ylabel('Inh Bursting')
+	ax[2].set_ylabel('Exc Tonic')
+	ax[3].set_ylabel('Inh Tonic')
+	ax[4].set_ylabel('RG1')
+	ax[4].set_xlabel('Time steps')
+	#for i in range(5):
+	#    ax[i].set_ylim(0,1)
+	#    ax[i].set_xticks([])
+	#pylab.xlim(2000,4000)
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_firing_rate.png',bbox_inches="tight")
 	'''
-	neuron_num_to_plot = 5
-	pylab.figure()
-	pylab.subplot(211)
-	pylab.plot(spikes_convolved_all1[neuron_num_to_plot+nn.exc_bursting_count+nn.inh_bursting_count])	
-	pylab.xlim(2000,4000)
+	fig, ax = plt.subplots(4, sharex=True, figsize=(15, 8))
+	ax[0].plot(spiketimes_exc1[0][neuron_num_to_plot],senders_exc1[0][neuron_num_to_plot],'.')
+	ax[1].plot(spiketimes_inh1[0][neuron_num_to_plot],senders_inh1[0][neuron_num_to_plot],'.')
+	ax[2].plot(spiketimes_exc_tonic1[0][neuron_num_to_plot],senders_exc_tonic1[0][neuron_num_to_plot],'.')
+	ax[3].plot(spiketimes_inh_tonic1[0][neuron_num_to_plot],senders_inh_tonic1[0][neuron_num_to_plot],'.')
+	ax[0].set_title('Spiking individual neurons')
+	ax[0].set_ylabel('Exc Bursting')
+	ax[1].set_ylabel('Inh Bursting')
+	ax[2].set_ylabel('Exc Tonic')
+	ax[3].set_ylabel('Inh Tonic')
+	ax[3].set_xlabel('Time (ms)')	
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_spiking.png',bbox_inches="tight")
+	'''	
+	'''
 	pylab.ylabel('Firing rate')
-	pylab.title('Firing Rate vs Spike Output (Single Neuron)')
+	#pylab.title('Firing Rate vs Spike Output (Single Neuron)')
 	pylab.subplot(212)
 	pylab.plot(spiketimes_exc_tonic1[0][neuron_num_to_plot],senders_exc_tonic1[0][neuron_num_to_plot],'.')
-	pylab.xlim(200,400)
+	#pylab.xlim(200,400)
 	pylab.ylabel('Neuron ID')
 	pylab.xlabel('Time (ms)')
 	pylab.subplots_adjust(bottom=0.15)
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_firing_rate.png',bbox_inches="tight")
-
-
+	'''
+	
 #Plot phase sorted activity
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==1:
-	order_by_phase(spikes_convolved_all1, spike_bins_rg1, 'rg1', remove_mean = True, high_pass_filtered = True, generate_plot = True)
-	order_by_phase(spikes_convolved_all2, spike_bins_rg2, 'rg2', remove_mean = True, high_pass_filtered = True, generate_plot = True)
-	order_by_phase(spikes_convolved_rgs, spike_bins_rgs, 'rgs', remove_mean = True, high_pass_filtered = True, generate_plot = True)
-	order_by_phase(spikes_convolved_complete_network, spike_bins_rgs, 'all_pops', remove_mean = True, high_pass_filtered = True, generate_plot = True) #UPDATED - compare summed output from rgs to all spikes in network (inh pops output is "absorbed" into rg so it does not directly contribute to the rate-coded output of the network)
+	order_by_phase(spikes_convolved_all1, spike_bins_rg1, 'rg1', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
+	order_by_phase(spikes_convolved_all2, spike_bins_rg2, 'rg2', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
+	order_by_phase(spikes_convolved_rgs, spike_bins_rgs, 'rgs', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
+	order_by_phase(spikes_convolved_complete_network, spike_bins_rgs, 'all_pops', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True) #UPDATED - compare summed output from rgs to all spikes in network (inh pops output is "absorbed" into rg so it does not directly contribute to the rate-coded output of the network)
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==0:
     print('The rate-coded output must be calculated in order to produce a phase-ordered plot, ensure "rate_coded_plot" is selected.')
 
@@ -267,15 +314,17 @@ if nn.raster_plot==1:
 
 #Plot rate-coded output
 if nn.rate_coded_plot==1:
-	chop_edges_rc = 500 # in timesteps
+	#chop_edges_rc = 500 # in timesteps
 	t = np.arange(0,len(spike_bins_rg1),1)
 	pylab.figure()
-	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1[chop_edges_rc:-chop_edges_rc],label='RG1')		
-	pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2[chop_edges_rc:-chop_edges_rc],label='RG2')
+	#pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1[chop_edges_rc:-chop_edges_rc],label='RG1')		
+	#pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2[chop_edges_rc:-chop_edges_rc],label='RG2')
+	pylab.plot(t,spike_bins_rg1,label='RG1')
+	pylab.plot(t,spike_bins_rg2,label='RG2')
 	plt.legend( bbox_to_anchor=(1.1,1.05))
 	pylab.ylim(bottom=0)		
 	pylab.xlabel('Time steps')
-	pylab.ylabel('Spike Count')
+	pylab.ylabel('Normalized Spike Count')
 	pylab.title('Rate-coded Output per RG')
 	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'rate_coded_output.png',bbox_inches="tight")
 
@@ -293,6 +342,7 @@ if nn.spike_distribution_plot==1:
 	all_indiv_spike_counts=indiv_spikes_exc1+indiv_spikes_inh1+indiv_spikes_exc_tonic1+indiv_spikes_inh_tonic1+indiv_spikes_exc2+indiv_spikes_inh2+indiv_spikes_exc_tonic2+indiv_spikes_inh_tonic2
 	sparse_firing_count = sparse_count1+sparse_count2+sparse_count3+sparse_count4+sparse_count5+sparse_count6+sparse_count7+sparse_count8
 	silent_neuron_count = silent_count1+silent_count2+silent_count3+silent_count4+silent_count5+silent_count6+silent_count7+silent_count8
+	print('RG sparse firing, % sparse firing in RGs',sparse_firing_count,round(sparse_firing_count*100/(len(all_indiv_spike_counts)-silent_neuron_count),2),'%')
 	if nn.rgs_connected==1:
 		indiv_spikes_inhpop1,neuron_to_sample_inh1,sparse_count9,silent_count9 = inh1.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop1)
 		indiv_spikes_inhpop2,neuron_to_sample_inh2,sparse_count10,silent_count10 = inh2.count_indiv_spikes(nn.inh_pop_neurons,senders_inhpop2)
@@ -343,7 +393,7 @@ if nn.membrane_potential_plot==1:
 
 #Plot normalized rate-coded output for simulation
 if nn.normalized_rate_coded_plot==1:
-    chop_edges_rc = 500 # in timesteps
+    #chop_edges_rc = 500 # in timesteps
     t = np.arange(0,len(spike_bins_rg1),1)
 
     # Normalization wrt the max component of the respective population
@@ -358,8 +408,10 @@ if nn.normalized_rate_coded_plot==1:
     spike_bins_rg2_norm = [s / rg_max for s in spike_bins_rg2]
 
     pylab.figure()
-    pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],label='RG1_norm')		
-    pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],label='RG2_norm')
+    #pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],label='RG1_norm')		
+    #pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],label='RG2_norm')
+    pylab.plot(t,spike_bins_rg1_norm,label='RG1_norm')
+    pylab.plot(t,spike_bins_rg2_norm,label='RG2_norm')
     plt.legend( bbox_to_anchor=(1.1,1.05))		
     pylab.xlabel('Time steps')
     pylab.ylabel('Spike Count')
@@ -368,5 +420,6 @@ if nn.normalized_rate_coded_plot==1:
 
     # Generate excitation signals file for OpenSim.
     if nn.excitation_file_generation_arm == 1 or nn.excitation_file_generation_leg == 1:
-        file_gen(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],nn.path,nn.excitation_file_generation_arm,nn.excitation_file_generation_leg,nn.excitation_gain)
+        #file_gen(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2_norm[chop_edges_rc:-chop_edges_rc],spike_bins_rg1_norm[chop_edges_rc:-chop_edges_rc],nn.path,nn.excitation_file_generation_arm,nn.excitation_file_generation_leg,nn.excitation_gain)
+        file_gen(t,spike_bins_rg2_norm,spike_bins_rg1_norm,nn.path,nn.excitation_file_generation_arm,nn.excitation_file_generation_leg,nn.excitation_gain)
 #pylab.show()
