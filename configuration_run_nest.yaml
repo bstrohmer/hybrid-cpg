@@ -1,16 +1,16 @@
 PCA_components: 5
 calculate_balance: 1
-chop_edges_amount: 5000
+chop_edges_amount: 5000 #steps (5000 = 500ms * 0.1 dt)
 convstd_rate: 200
 convstd_pca: 200
-coupling: .6 #Control 0.6
-coupling_std: .12 #Control .12
+coupling: 0.6 #Control 0.6, no mut inh = 1.2
+coupling_std: .12 #Control .12, no mut inh = 0.24
 delta_clock: .1 #Simulation time step (ms)
 downsampling_convolved: 0
-exc_pct_tonic: 0.7 #Control 0.7
+exc_pct_tonic: 0.7 #Control 0.7, No inh = 0.5, no mut inh = 0.6
 freezing_enabled: 0
 high_pass_filtered: false
-inh_pct_tonic: 0.7 #Control 0.7
+inh_pct_tonic: 0.7 #Control 0.7, No inh = 0.5, no mut inh = 0.6
 rg_pop_size: 2000
 inh_pop_size: 100
 noise_amplitude_tonic: 320. #Current mean 320 
@@ -22,13 +22,13 @@ remove_silent: true
 rgs_connected: 1 #Use 0 to remove mutual inhibition between the RG populations
 run_PCA: 1
 save_results: 1
-seed: 8550026 #Use 0 for a random seed, Control seed: 8550026
+seed: 7625853 #Use 0 for a random seed, Control: 7625853
 smoothing_window: 50 #Ex. 50: 50*0.1=5ms time window
 sparsity_rg: 0.03 #Control 0.03
 sparsity_cpg: 0.09 #Control 0.09
 synaptic_delay: 2.
 sync_regularity: 0
-t_steps: 4000
+t_steps: 4000 #ms
 w_exc_multiplier: 2. #Use this to change the balance of the network through excitatory weights, Control 2
 membrane_potential_plot: 0 #This parameter and below allow selection of specific plots
 pca_plot: 1
@@ -41,7 +41,7 @@ spike_distribution_plot: 1
 normalized_rate_coded_plot: 0
 
 # Choose which simulation model (leg or arm) to be used.
-excitation_file_generation_leg: 0
+excitation_file_generation_leg: 1
 excitation_file_generation_arm: 0
 excitation_gain: 0.5
 

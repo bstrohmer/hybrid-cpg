@@ -24,6 +24,7 @@ class neural_network():
         self.args = args
 
         #Set parameters for network
+        #self.rng_seed = int(sys.argv[1]) #Use this if you are providing a seed from the loop script
         self.rng_seed = np.random.randint(10**7) if args['seed'] is 0 else args['seed'] 	#RUN WITH RANDOM SEED	
         self.time_resolution = args['delta_clock'] 		#equivalent to "delta_clock"
         self.inh_pop_neurons = args['inh_pop_size']
@@ -52,14 +53,16 @@ class neural_network():
         self.w_exc_std = args['coupling_std'] #nS
         self.w_exc_multiplier = args['w_exc_multiplier']
         self.w_inh_mean = -1*args['coupling'] if args['remove_inhibition'] == 0 else args['coupling']
-        self.w_inh_std = args['coupling_std'] #nS        
+        self.w_inh_std = args['coupling_std'] #nS
+        self.w_weak_exc_mean = 0.25*self.w_exc_mean #nS
+        self.w_weak_exc_std = 0.25*self.w_exc_std #nS        
         self.w_strong_inh_mean = -2*args['coupling'] #nS
         self.w_strong_inh_std = args['coupling_std'] #nS
         self.synaptic_delay = args['synaptic_delay']
         self.I_e_bursting_mean = 160.0 #pA Control = 160
         self.I_e_bursting_std = 40.0 #pA Control = 40
         self.I_e_tonic_mean = 320.0 #pA Control = 320
-        self.I_e_tonic_std = 80.0 #pA Control = 0		
+        self.I_e_tonic_std = 80.0 #pA Control = 80		
         self.noise_std_dev_tonic = args['noise_amplitude_tonic'] #pA
         self.noise_std_dev_bursting = args['noise_amplitude_bursting'] #pA
         self.freezing_enabled = args['freezing_enabled']

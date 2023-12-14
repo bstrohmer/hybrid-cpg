@@ -203,7 +203,7 @@ if nn.rate_coded_plot==1:
 	print("Peaks RG1: ",rg1_peaks," Average diff (RG1): ",round(avg_rg1_peaks,2))
 	print("Peaks RG2: ",rg2_peaks," Average diff (RG2): ",round(avg_rg2_peaks,2))
 	print("Average diff (RG1+2), Freq: ",round(avg_rg_peaks,2),round(1000/(avg_rg_peaks*nn.time_resolution),2))
-	#Cross correlate RG output to find phase shift between populations	
+	#Cross correlate RG output to find phase difference between populations	
 	corr_rg = correlate(spike_bins_rg1, spike_bins_rg2, mode='same')	
 	max_index_rg = int(np.argmax(corr_rg)) # Find the index of the maximum value in the correlation
 	t2 = np.arange(-(len(corr_rg)-1)/2,(len(corr_rg)-1)/2,1)
@@ -230,7 +230,7 @@ if nn.rate_coded_plot==1:
 	#    ax[i].set_ylim(0,1)
 	#    ax[i].set_xticks([])
 	#pylab.xlim(2000,4000)
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_firing_rate.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_firing_rate.pdf',bbox_inches="tight")
 	'''
 	fig, ax = plt.subplots(4, sharex=True, figsize=(15, 8))
 	ax[0].plot(spiketimes_exc1[0][neuron_num_to_plot],senders_exc1[0][neuron_num_to_plot],'.')
@@ -243,7 +243,7 @@ if nn.rate_coded_plot==1:
 	ax[2].set_ylabel('Exc Tonic')
 	ax[3].set_ylabel('Inh Tonic')
 	ax[3].set_xlabel('Time (ms)')	
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_spiking.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'single_neuron_spiking.pdf',bbox_inches="tight")
 	'''	
 	'''
 	pylab.ylabel('Firing rate')
@@ -258,12 +258,19 @@ if nn.rate_coded_plot==1:
 	
 #Plot phase sorted activity
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==1:
-	order_by_phase(spikes_convolved_all1, spike_bins_rg1, 'rg1', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
-	order_by_phase(spikes_convolved_all2, spike_bins_rg2, 'rg2', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
-	order_by_phase(spikes_convolved_rgs, spike_bins_rgs, 'rgs', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True)
-	order_by_phase(spikes_convolved_complete_network, spike_bins_rgs, 'all_pops', remove_mean = nn.remove_mean, high_pass_filtered = nn.high_pass_filtered, generate_plot = True) #UPDATED - compare summed output from rgs to all spikes in network (inh pops output is "absorbed" into rg so it does not directly contribute to the rate-coded output of the network)
+	order_by_phase(spikes_convolved_all1, spike_bins_rg1, 'rg1',avg_rg1_peaks)
+	order_by_phase(spikes_convolved_all2, spike_bins_rg2, 'rg2',avg_rg2_peaks)
+	order_by_phase(spikes_convolved_rgs, spike_bins_rg1, 'rgs_vs_pop1',avg_rg1_peaks)
+	order_by_phase(spikes_convolved_complete_network, spike_bins_rg1, 'all_pops_vs_pop1',avg_rg1_peaks) #If the find peaks function is not evaluating to the correct period, use 5000ms as an approximation
+	order_by_phase(spikes_convolved_complete_network, spike_bins_rgs, 'all_pops_vs_pop1+2',avg_rg_peaks/2)
 if nn.phase_ordered_plot==1 and nn.rate_coded_plot==0:
-    print('The rate-coded output must be calculated in order to produce a phase-ordered plot, ensure "rate_coded_plot" is selected.')
+    print('The population firing rate output must be calculated in order to produce a phase-ordered plot, ensure "rate_coded_plot" is selected.')
+    
+if nn.args['save_results']:
+	# Save rate-coded output
+	np.savetxt(nn.pathFigures + '/output_rg1.csv',spike_bins_rg1,delimiter=',')
+	np.savetxt(nn.pathFigures + '/output_rg2.csv',spike_bins_rg2,delimiter=',')
+	#np.savetxt(nn.pathFigures + '/output_all_spikes.csv',spikes_convolved_complete_network,delimiter=',')
 
 #Plot raster plot of individual spikes
 if nn.raster_plot==1:
@@ -293,7 +300,7 @@ if nn.raster_plot==1:
 	pylab.ylabel('Neuron #')
 	#pylab.title('Spike Output rg2')
 	pylab.subplots_adjust(bottom=0.15)
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spikes_rg.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spikes_rg.pdf',bbox_inches="tight")
 
 	if nn.rgs_connected==1:
 		pylab.figure()
@@ -310,7 +317,7 @@ if nn.raster_plot==1:
 		pylab.ylabel('Neuron #')
 		#pylab.title('Spike Output Inh2')
 		pylab.subplots_adjust(bottom=0.15)
-		if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spikes_inh.png',bbox_inches="tight")
+		if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spikes_inh.pdf',bbox_inches="tight")
 
 #Plot rate-coded output
 if nn.rate_coded_plot==1:
@@ -321,12 +328,15 @@ if nn.rate_coded_plot==1:
 	#pylab.plot(t[chop_edges_rc:-chop_edges_rc],spike_bins_rg2[chop_edges_rc:-chop_edges_rc],label='RG2')
 	pylab.plot(t,spike_bins_rg1,label='RG1')
 	pylab.plot(t,spike_bins_rg2,label='RG2')
+	#pylab.plot(t,spike_bins_rgs,label='Both_pops')
 	plt.legend( bbox_to_anchor=(1.1,1.05))
+	plt.xticks(ticks=[0,5000,10000,15000,20000,25000,30000],labels=[0,500,1000,1500,2000,2500,3000])
+	plt.xlim(0,len(spike_bins_rg1))
 	pylab.ylim(bottom=0)		
-	pylab.xlabel('Time steps')
-	pylab.ylabel('Normalized Spike Count')
-	pylab.title('Rate-coded Output per RG')
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'rate_coded_output.png',bbox_inches="tight")
+	pylab.xlabel('Time (ms)')
+	pylab.ylabel('Normalized Spike Rate')
+	pylab.title('Population Firing Rate')
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'rate_coded_output.pdf',bbox_inches="tight")
 
 if nn.spike_distribution_plot==1:
 	#Count spikes per neuron
@@ -360,7 +370,7 @@ if nn.spike_distribution_plot==1:
 	pylab.xlabel('Total Spike Count')
 	pylab.ylabel('Number of Neurons')
 	pylab.title('Spike Distribution')
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spike_distribution.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'spike_distribution.pdf',bbox_inches="tight")
 
 if nn.membrane_potential_plot==1:
 	#Read membrane potential of an bursting neuron - neuron number <= population size
@@ -379,7 +389,7 @@ if nn.membrane_potential_plot==1:
 	pylab.plot(t_m2_irr,v_m2_irr)
 	pylab.xlabel('Time (ms)')
 	pylab.ylabel('Membrane potential (mV)')
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'membrane_potential_bursting.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'membrane_potential_bursting.pdf',bbox_inches="tight")
 
 	pylab.figure()
 	pylab.subplot(211)
@@ -389,7 +399,7 @@ if nn.membrane_potential_plot==1:
 	pylab.plot(t_m2,v_m2)
 	pylab.xlabel('Time (ms)')
 	pylab.ylabel('Membrane potential (mV)')
-	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'membrane_potential_tonic.png',bbox_inches="tight")
+	if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'membrane_potential_tonic.pdf',bbox_inches="tight")
 
 #Plot normalized rate-coded output for simulation
 if nn.normalized_rate_coded_plot==1:
@@ -415,8 +425,8 @@ if nn.normalized_rate_coded_plot==1:
     plt.legend( bbox_to_anchor=(1.1,1.05))		
     pylab.xlabel('Time steps')
     pylab.ylabel('Spike Count')
-    pylab.title('Normalized Rate-coded Output per RG')
-    if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'normalized_rate_coded_output.png',bbox_inches="tight")
+    pylab.title('Normalized Population Firing Rate')
+    if nn.args['save_results']: plt.savefig(nn.pathFigures + '/' + 'normalized_rate_coded_output.pdf',bbox_inches="tight")
 
     # Generate excitation signals file for OpenSim.
     if nn.excitation_file_generation_arm == 1 or nn.excitation_file_generation_leg == 1:
